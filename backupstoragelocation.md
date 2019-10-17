@@ -33,3 +33,13 @@ The configurable parameters are as follows:
 | `objectStorage/bucket` | String | Required Field | The storage bucket where backups are to be uploaded. |
 | `objectStorage/prefix` | String | Optional Field | The directory inside a storage bucket where backups are to be uploaded. |
 | `accessMode` | String | `ReadWrite` | How Velero can access the backup storage location. Valid values are `ReadWrite`, `ReadOnly`. |
+| `config` | map[string]string<br><br> (See the corresponding GCP specific configs below) | None (Optional) | Configuration keys/values to be passed to the cloud provider for backup storage. |
+
+#### GCP specific
+
+##### config
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `kmsKeyName` | string | Empty | Name of the Cloud KMS key to use to encrypt backups stored in this location, in the form `projects/P/locations/L/keyRings/R/cryptoKeys/K`. See [customer-managed Cloud KMS keys](https://cloud.google.com/storage/docs/encryption/using-customer-managed-keys) for details.  |
+| `serviceAccount` | string | Empty | Name of the GCP service account to use for this backup storage location. Specify the service account here if you want to use workload identity instead of providing the key file.

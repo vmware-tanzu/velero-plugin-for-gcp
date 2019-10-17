@@ -29,3 +29,16 @@ The configurable parameters are as follows:
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `provider` | String `gcp` | Required Field | The name of the cloud provider which will be used to actually store the volume |
+| `config` | | | See the corresponding Azure specific config below.
+
+#### GCP specific
+
+##### config
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `snapshotLocation` | string | Empty | *Example*: "us-central1"<br><br>See [GCP documentation][1] for the full list.<br><br>If not specified the snapshots are stored in the [default location][2]. |
+| `project` | string | Empty | The project ID where snapshots should be stored, if different than the project that your IAM account is in. Optional. |
+
+[1]: https://cloud.google.com/storage/docs/locations#available_locations
+[2]: https://cloud.google.com/compute/docs/disks/create-snapshots#default_location
