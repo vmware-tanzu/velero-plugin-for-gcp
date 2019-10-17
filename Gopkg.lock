@@ -189,12 +189,12 @@
   version = "v1.0"
 
 [[projects]]
-  digest = "1:709cd2a2c29cc9b89732f6c24846bbb9d6270f28ef5ef2128cc73bd0d6d7bff9"
+  digest = "1:beb5b4f42a25056f0aa291b5eadd21e2f2903a05d15dfe7caf7eaee7e12fa972"
   name = "github.com/json-iterator/go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "27518f6661eba504be5a7a9a9f6d9460d892ade3"
-  version = "v1.1.7"
+  revision = "03217c3e97663914aec3faafde50d081f197a0a2"
+  version = "1.1.8"
 
 [[projects]]
   digest = "1:076c531484852c227471112d49465873aaad47e5ad6e1aec3a5b092a436117ef"
@@ -483,7 +483,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b2c9cf4a034a83a351de3c9e1d5b2ec5d96d4975b7abe66245c8370b00c6e2e9"
+  digest = "1:510e6ae2c0a8ee4d7c3d3cd8e6a4734654d8216ee8602814e24f25aec62054bd"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -503,9 +503,10 @@
     "internal/imports",
     "internal/module",
     "internal/semver",
+    "internal/span",
   ]
   pruneopts = "UT"
-  revision = "f0068bd333b234c38cb0ed6b2946665a40ad171b"
+  revision = "a3bc800455d52a1945fbaf123e8a0f9d337c235b"
 
 [[projects]]
   digest = "1:14868e11679e83c95f545b8817f5fcfe317611f5c2bd49659be13d365c1ddfcf"
