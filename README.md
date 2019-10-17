@@ -15,15 +15,15 @@ You can run Kubernetes on Google Cloud Platform in either:
 
 ## Setup
 
-To set up Velero on AWS, you:
+To set up Velero on GCP, you:
 
-* [Create an S3 bucket][1]
+* [Create an GCS bucket][1]
 * [Set permissions for Velero][2]
 * [Install and start Velero][3]
 
 If you do not have the `gcloud` and `gsutil` CLIs locally installed, follow the [user guide][5] to set them up.
 
-## Create S3 bucket
+## Create an GCS bucket
 
 Velero requires an object storage bucket in which to store backups, preferably unique to a single Kubernetes cluster (see the [FAQ][11] for more details). Create a GCS bucket, replacing the <YOUR_BUCKET> placeholder with the name of your bucket:
 
@@ -164,7 +164,7 @@ Additionally, you can specify `--use-restic` to enable restic support, and `--wa
 
 For more complex installation needs, use either the Helm chart, or add `--dry-run -o yaml` options for generating the YAML representation for the installation.
 
-[1]: #Create-S3-bucket
+[1]: #Create-an-GCS-bucket
 [2]: #Set-permissions-for-Velero
 [3]: #Install-and-start-Velero
 [4]: https://velero.io/docs/master/install-overview/

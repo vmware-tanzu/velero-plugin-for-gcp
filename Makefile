@@ -15,7 +15,7 @@
 PKG := github.com/vmware-tanzu/velero-plugin-for-gcp
 BIN := velero-plugin-for-gcp
 
-REGISTRY ?= carlisia
+REGISTRY ?= velero 
 IMAGE ?= $(REGISTRY)/velero-plugin-for-gcp
 BUILD_IMAGE ?= golang:1.12-stretch
 

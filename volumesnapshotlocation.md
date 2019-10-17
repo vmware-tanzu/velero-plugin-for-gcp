@@ -29,7 +29,7 @@ The configurable parameters are as follows:
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `provider` | String `gcp` | Required Field | The name of the cloud provider which will be used to actually store the volume |
-| `config` | | | See the corresponding Azure specific config below.
+| `config` | | | See the corresponding GCP specific config below.
 
 #### GCP specific
 
