@@ -108,14 +108,14 @@ func TestGetSnapshotTags(t *testing.T) {
 		{
 			name:            "disk tags only get applied",
 			veleroTags:      nil,
-			diskDescription: `{"aws-key1":"aws-val1","aws-key2":"aws-val2"}`,
-			expected:        `{"aws-key1":"aws-val1","aws-key2":"aws-val2"}`,
+			diskDescription: `{"gcp-key1":"gcp-val1","gcp-key2":"gcp-val2"}`,
+			expected:        `{"gcp-key1":"gcp-val1","gcp-key2":"gcp-val2"}`,
 		},
 		{
 			name:            "non-overlapping velero and disk tags both get applied",
 			veleroTags:      map[string]string{"velero-key": "velero-val"},
-			diskDescription: `{"aws-key":"aws-val"}`,
-			expected:        `{"velero-key":"velero-val","aws-key":"aws-val"}`,
+			diskDescription: `{"gcp-key":"gcp-val"}`,
+			expected:        `{"velero-key":"velero-val","gcp-key":"gcp-val"}`,
 		},
 		{
 			name: "when tags overlap, velero tags take precedence",
@@ -123,8 +123,8 @@ func TestGetSnapshotTags(t *testing.T) {
 				"velero-key":      "velero-val",
 				"overlapping-key": "velero-val",
 			},
-			diskDescription: `{"aws-key":"aws-val","overlapping-key":"aws-val"}`,
-			expected:        `{"velero-key":"velero-val","aws-key":"aws-val","overlapping-key":"velero-val"}`,
+			diskDescription: `{"gcp-key":"gcp-val","overlapping-key":"gcp-val"}`,
+			expected:        `{"velero-key":"velero-val","gcp-key":"gcp-val","overlapping-key":"velero-val"}`,
 		},
 		{
 			name:            "if disk description is invalid JSON, apply just velero tags",
