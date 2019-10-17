@@ -12,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian:stretch-slim
+FROM golang:1.13-buster AS build
+WORKDIR /go/src/github.com/vmware-tanzu/velero-plugin-for-gcp
+# copy vendor in separately so the layer can be cached if the contents don't change
+COPY vendor vendor
+COPY velero-plugin-for-gcp velero-plugin-for-gcp
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /go/bin/velero-plugin-for-gcp ./velero-plugin-for-gcp
+
+
+FROM ubuntu:bionic
 RUN mkdir /plugins
-ADD velero-plugin-for-gcp /plugins/
+COPY --from=build /go/bin/velero-plugin-for-gcp /plugins/
 USER nobody:nobody
 ENTRYPOINT ["/bin/bash", "-c", "cp /plugins/* /target/."]
