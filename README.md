@@ -149,6 +149,7 @@ You must add a service account annotation to the Kubernetes service account so t
 ```bash
 velero install \
     --provider gcp \
+    --plugins velero/velero-plugin-for-gcp:v1.0.0 \
     --no-secret \
     --sa-annotations iam.gke.io/gcp-service-account=[GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com \
     --backup-location-config serviceAccount=[GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com \
@@ -167,7 +168,7 @@ For more complex installation needs, use either the Helm chart, or add `--dry-ru
 [1]: #Create-an-GCS-bucket
 [2]: #Set-permissions-for-Velero
 [3]: #Install-and-start-Velero
-[4]: https://velero.io/docs/master/install-overview/
+[4]: https://velero.io/docs/master/install-overview/#install-the-cli
 [5]: https://cloud.google.com/sdk/docs/
 [7]: backupstoragelocation.md
 [8]: volumesnapshotlocation.md
