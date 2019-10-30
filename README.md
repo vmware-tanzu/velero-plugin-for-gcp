@@ -13,6 +13,8 @@ You can run Kubernetes on Google Cloud Platform in either:
 * Kubernetes on Google Compute Engine virtual machines
 * Google Kubernetes Engine
 
+For common use-cases, take a look at the [Examples][10] page.
+
 ## Compatibility
 
 Below is a listing of plugin versions and respective Velero versions that are compatible.
@@ -102,7 +104,7 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][15]:
     gcloud iam roles create velero.server \
         --project $PROJECT_ID \
         --title "Velero Server" \
-        --permissions "$(IFS=","; echo "${ROLE_PERMISSIONS[*]}")"    
+        --permissions "$(IFS=","; echo "${ROLE_PERMISSIONS[*]}")"
 
     gcloud projects add-iam-policy-binding $PROJECT_ID \
         --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
@@ -128,7 +130,7 @@ Next, add an IAM policy binding to grant Velero's Kubernetes service account acc
 
 ```bash
 gcloud iam service-accounts add-iam-policy-binding \
-    --role roles/iam.workloadIdentityUser \ 
+    --role roles/iam.workloadIdentityUser \
     --member serviceAccount:[PROJECT_ID].svc.id.goog[velero/velero] \
     [GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com
 ```
@@ -182,6 +184,7 @@ For more complex installation needs, use either the Helm chart, or add `--dry-ru
 [7]: backupstoragelocation.md
 [8]: volumesnapshotlocation.md
 [9]: https://velero.io/docs/master/install-requirement
+[10]: ./examples
 [11]: https://velero.io/docs/master/faq/
 [15]: https://cloud.google.com/compute/docs/access/service-accounts
 [22]: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#iam-rolebinding-bootstrap
