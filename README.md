@@ -13,6 +13,14 @@ You can run Kubernetes on Google Cloud Platform in either:
 * Kubernetes on Google Compute Engine virtual machines
 * Google Kubernetes Engine
 
+## Compatibility
+
+Below is a listing of plugin versions and respective Velero versions that are compatible.
+
+| Plugin Version  | Velero Version |
+|-----------------|----------------|
+| v1.0.0          | v1.2.0         |
+
 ## Setup
 
 To set up Velero on GCP, you:
