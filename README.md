@@ -148,7 +148,7 @@ Install Velero, including all prerequisites, into the cluster and start the depl
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.0.0-beta.1 \
+    --plugins velero/velero-plugin-for-gcp:v1.0.0 \
     --bucket $BUCKET \
     --secret-file ./credentials-velero
 ```
@@ -160,7 +160,7 @@ You must add a service account annotation to the Kubernetes service account so t
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.0.0-beta.1 \
+    --plugins velero/velero-plugin-for-gcp:v1.0.0 \
     --no-secret \
     --sa-annotations iam.gke.io/gcp-service-account=[GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com \
     --backup-location-config serviceAccount=[GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com \
