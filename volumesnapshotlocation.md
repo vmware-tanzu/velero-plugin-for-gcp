@@ -23,8 +23,10 @@ spec:
     # Optional.
     snapshotLocation: us-central1
 
-    # The project ID where snapshots should be stored, if different than the project 
-    # that your IAM account is in.
+    # The project ID where existing snapshots should be retrieved from during restores, if 
+    # different than the project that your IAM account is in. This field has no effect on 
+    # where new snapshots are created; it is only useful for restoring existing snapshots 
+    # from a different project.
     # 
     # Optional (defaults to the project that the GCP IAM account is in).
     project: my-alternate-project
