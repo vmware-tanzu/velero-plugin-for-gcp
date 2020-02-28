@@ -21,6 +21,7 @@ Below is a listing of plugin versions and respective Velero versions that are co
 
 | Plugin Version  | Velero Version |
 |-----------------|----------------|
+| v1.0.x          | v1.3.0         |
 | v1.0.x          | v1.2.0         |
 
 ## Setup
@@ -172,20 +173,20 @@ Additionally, you can specify `--use-restic` to enable restic support, and `--wa
 
 (Optional) Specify [additional configurable parameters][8] for the `--snapshot-location-config` flag.
 
-(Optional) Specify [CPU and memory resource requests and limits][9] for the Velero/restic pods.
+(Optional) [Customize the Velero installation][9] further to meet your needs.
 
 For more complex installation needs, use either the Helm chart, or add `--dry-run -o yaml` options for generating the YAML representation for the installation.
 
 [1]: #Create-an-GCS-bucket
 [2]: #Set-permissions-for-Velero
 [3]: #Install-and-start-Velero
-[4]: https://velero.io/docs/master/install-overview/#install-the-cli
+[4]: https://velero.io/docs/install-overview/
 [5]: https://cloud.google.com/sdk/docs/
 [7]: backupstoragelocation.md
 [8]: volumesnapshotlocation.md
-[9]: https://velero.io/docs/master/install-requirement
+[9]: https://velero.io/docs/customize-installation/
 [10]: ./examples
-[11]: https://velero.io/docs/master/faq/
+[11]: https://velero.io/docs/faq/
 [15]: https://cloud.google.com/compute/docs/access/service-accounts
 [22]: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#iam-rolebinding-bootstrap
 [24]: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
