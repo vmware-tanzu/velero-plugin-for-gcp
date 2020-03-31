@@ -37,6 +37,7 @@ const (
 	credentialsEnvVar    = "GOOGLE_APPLICATION_CREDENTIALS"
 	kmsKeyNameConfigKey  = "kmsKeyName"
 	serviceAccountConfig = "serviceAccount"
+	caCert               = "caCert"
 )
 
 // bucketWriter wraps the GCP SDK functions for accessing object store so they can be faked for testing.
@@ -76,7 +77,7 @@ func newObjectStore(logger logrus.FieldLogger) *ObjectStore {
 }
 
 func (o *ObjectStore) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateObjectStoreConfigKeys(config, kmsKeyNameConfigKey, serviceAccountConfig); err != nil {
+	if err := veleroplugin.ValidateObjectStoreConfigKeys(config, kmsKeyNameConfigKey, serviceAccountConfig, caCert); err != nil {
 		return err
 	}
 	// Find default token source to extract the GoogleAccessID
