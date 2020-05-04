@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
 )
 
@@ -31,6 +32,7 @@ type FakeDiscoveryHelper struct {
 	Mapper             meta.RESTMapper
 	AutoReturnResource bool
 	APIGroupsList      []metav1.APIGroup
+	ServerVersionData  *version.Info
 }
 
 func NewFakeDiscoveryHelper(autoReturnResource bool, resources map[schema.GroupVersionResource]schema.GroupVersionResource) *FakeDiscoveryHelper {
@@ -69,6 +71,22 @@ func NewFakeDiscoveryHelper(autoReturnResource bool, resources map[schema.GroupV
 	for group, resources := range apiResourceMap {
 		helper.ResourceList = append(helper.ResourceList, &metav1.APIResourceList{GroupVersion: group, APIResources: resources})
 	}
+
+	// FakeTest of version.Info
+
+	serverVersion := &version.Info{
+		Major:        "1",
+		Minor:        "16",
+		GitVersion:   "v1.16.4",
+		GitCommit:    "FakeTest",
+		GitTreeState: "",
+		BuildDate:    "",
+		GoVersion:    "",
+		Compiler:     "",
+		Platform:     "",
+	}
+
+	helper.ServerVersionData = serverVersion
 
 	return helper
 }
@@ -127,6 +145,7 @@ func (dh *FakeDiscoveryHelper) APIGroups() []metav1.APIGroup {
 
 type FakeServerResourcesInterface struct {
 	ResourceList []*metav1.APIResourceList
+	ApiGroup     []*metav1.APIGroup
 	FailedGroups map[schema.GroupVersion]error
 	ReturnError  error
 }
@@ -141,11 +160,26 @@ func (di *FakeServerResourcesInterface) ServerPreferredResources() ([]*metav1.AP
 	return di.ResourceList, &discovery.ErrGroupDiscoveryFailed{Groups: di.FailedGroups}
 }
 
-func NewFakeServerResourcesInterface(resourceList []*metav1.APIResourceList, failedGroups map[schema.GroupVersion]error, returnError error) *FakeServerResourcesInterface {
+func (di *FakeServerResourcesInterface) ServerGroupsAndResources() ([]*metav1.APIGroup, []*metav1.APIResourceList, error) {
+	if di.ReturnError != nil {
+		return di.ApiGroup, di.ResourceList, di.ReturnError
+	}
+	if di.FailedGroups == nil || len(di.FailedGroups) == 0 {
+		return di.ApiGroup, di.ResourceList, nil
+	}
+	return di.ApiGroup, di.ResourceList, &discovery.ErrGroupDiscoveryFailed{Groups: di.FailedGroups}
+}
+
+func NewFakeServerResourcesInterface(resourceList []*metav1.APIResourceList, apiGroup []*metav1.APIGroup, failedGroups map[schema.GroupVersion]error, returnError error) *FakeServerResourcesInterface {
 	helper := &FakeServerResourcesInterface{
 		ResourceList: resourceList,
+		ApiGroup:     apiGroup,
 		FailedGroups: failedGroups,
 		ReturnError:  returnError,
 	}
 	return helper
+}
+
+func (dh *FakeDiscoveryHelper) ServerVersion() *version.Info {
+	return dh.ServerVersionData
 }
