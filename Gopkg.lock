@@ -329,7 +329,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:bccc1a0005d02ec7e3dde09f98db79f1384be26c933c92aab2fbe8a5efed80e7"
+  digest = "1:2bf69a649b83490716e352df98817eaa1f092bd3884582aeaabb16f357b80dc2"
   name = "github.com/vmware-tanzu/velero"
   packages = [
     "pkg/apis/velero/v1",
@@ -349,7 +349,7 @@
     "pkg/util/logging",
   ]
   pruneopts = "UT"
-  revision = "09a1c4dac7d2e9f3c9e0d77acf5b185d402a3751"
+  revision = "577af5a5b1a64eaca79c89822bdf289cc249647e"
 
 [[projects]]
   digest = "1:b984f402fbabb0e9eb0476f0ecfa51d0b2ff11cd0ac03538d6284091033b39ae"
@@ -655,7 +655,7 @@
   version = "2019.2.3"
 
 [[projects]]
-  digest = "1:d89afbf3588e87d2c9e6efdd5528d249b32d23a12fbd7ec324f3cb373c6fb76c"
+  digest = "1:57858c910b7c29c64f742c34df7bc6ce76ea72e561276c80c0eda16980443736"
   name = "k8s.io/api"
   packages = [
     "admissionregistration/v1beta1",
@@ -696,11 +696,11 @@
     "storage/v1beta1",
   ]
   pruneopts = "UT"
-  revision = "3544db3b9e4494309507e02eced5cd9dcff47e6a"
-  version = "kubernetes-1.15.3"
+  revision = "d3c87f2f52e31c74a4ccb065b706b688f4e6341d"
+  version = "kubernetes-1.17.4"
 
 [[projects]]
-  digest = "1:5edd7138a285ce2baa994b139457d69b671452d3731d913234abdb116914d25d"
+  digest = "1:bf67e21cdd9374176703630832282999ef233d1811409d66fb59d1b51479b4ad"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/equality",
@@ -744,8 +744,8 @@
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "f2f3a405f61d6c2cdc0d00687c1b5d90de91e9f0"
-  version = "kubernetes-1.15.3"
+  revision = "731dcecc205498f52a21b12e311af095efb4b188"
+  version = "kubernetes-1.17.4"
 
 [[projects]]
   digest = "1:87e85012ddc9197bd08d164aefa89fb6050306f52a16c7fb1dcdfa703182b7a8"
@@ -901,6 +901,7 @@
     "github.com/pkg/errors",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
+    "github.com/spf13/pflag",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
     "github.com/vmware-tanzu/velero/pkg/plugin/framework",
