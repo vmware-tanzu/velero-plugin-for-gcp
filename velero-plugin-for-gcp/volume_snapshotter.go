@@ -37,7 +37,8 @@ import (
 
 const (
 	zoneSeparator       = "__"
-	projectKey          = "project"
+	snapshotProjectKey  = "snapshotProject"
+	restoreProjectKey   = "restoreFromProject"
 	snapshotLocationKey = "snapshotLocation"
 )
 
@@ -54,7 +55,7 @@ func newVolumeSnapshotter(logger logrus.FieldLogger) *VolumeSnapshotter {
 }
 
 func (b *VolumeSnapshotter) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config, snapshotLocationKey, projectKey); err != nil {
+	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config, snapshotLocationKey, restoreProjectKey, snapshotProjectKey); err != nil {
 		return err
 	}
 
@@ -65,13 +66,16 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 	}
 	b.snapshotLocation = config[snapshotLocationKey]
 
-	b.volumeProject = creds.ProjectID
+	b.volumeProject = config[snapshotProjectKey]
+	if b.volumeProject == "" {
+		b.volumeProject = creds.ProjectID
+	}
 
-	// get snapshot project from 'project' config key if specified,
+	// get snapshot project from 'restoreFromProject' config key if specified,
 	// otherwise from the credentials file
-	b.snapshotProject = config[projectKey]
+	b.snapshotProject = config[restoreProjectKey]
 	if b.snapshotProject == "" {
-		b.snapshotProject = b.volumeProject
+		b.snapshotProject = creds.ProjectID
 	}
 	client := oauth2.NewClient(oauth2.NoContext, creds.TokenSource)
 
