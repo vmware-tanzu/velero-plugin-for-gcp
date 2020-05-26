@@ -328,8 +328,7 @@
   version = "v1.2.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:2bf69a649b83490716e352df98817eaa1f092bd3884582aeaabb16f357b80dc2"
+  digest = "1:9a97a83b9ff15254288b3f0c6f4742c3e4cd3c2f3237da8d210416ddb285de1d"
   name = "github.com/vmware-tanzu/velero"
   packages = [
     "pkg/apis/velero/v1",
@@ -349,7 +348,8 @@
     "pkg/util/logging",
   ]
   pruneopts = "UT"
-  revision = "577af5a5b1a64eaca79c89822bdf289cc249647e"
+  revision = "5963650c9d64643daaf510ef93ac4a36b6483392"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:b984f402fbabb0e9eb0476f0ecfa51d0b2ff11cd0ac03538d6284091033b39ae"
