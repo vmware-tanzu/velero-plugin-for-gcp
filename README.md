@@ -1,3 +1,5 @@
+[![Build Status][101]][102]
+
 # Plugins for Google Cloud Platform (GCP)
 
 ## Overview
@@ -191,3 +193,6 @@ For more complex installation needs, use either the Helm chart, or add `--dry-ru
 [15]: https://cloud.google.com/compute/docs/access/service-accounts
 [22]: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#iam-rolebinding-bootstrap
 [24]: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
+
+[101]: https://github.com/vmware-tanzu/velero-plugin-for-gcp/workflows/Master%20CI/badge.svg
+[102]: https://github.com/vmware-tanzu/velero-plugin-for-gcp/actions?query=workflow%3A"Master+CI"
