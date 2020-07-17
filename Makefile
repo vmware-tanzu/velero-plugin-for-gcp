@@ -17,7 +17,7 @@ BIN := velero-plugin-for-gcp
 
 REGISTRY 	?= velero
 IMAGE 		?= $(REGISTRY)/velero-plugin-for-gcp
-VERSION 	?= master
+VERSION 	?= main
 
 # Which architecture to build.
 # if the 'local' rule is being run, detect the GOOS/GOARCH from 'go env'
