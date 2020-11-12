@@ -21,11 +21,11 @@ For common use-cases, take a look at the [Examples][10] page.
 
 Below is a listing of plugin versions and respective Velero versions that are compatible.
 
-| Plugin Version  | Velero Version |
-|-----------------|----------------|
-| v1.1.x          | v1.4.x         |
-| v1.0.x          | v1.3.x         |
-| v1.0.x          | v1.2.0         |
+| Plugin Version | Velero Version |
+| -------------- | -------------- |
+| v1.1.x         | v1.4.x         |
+| v1.0.x         | v1.3.x         |
+| v1.0.x         | v1.2.0         |
 
 ## Setup
 
@@ -103,6 +103,7 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][15]:
         compute.snapshots.useReadOnly
         compute.snapshots.delete
         compute.zones.get
+        storage.objects.list
     )
 
     gcloud iam roles create velero.server \
