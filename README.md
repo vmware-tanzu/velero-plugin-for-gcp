@@ -135,7 +135,7 @@ Next, add an IAM policy binding to grant Velero's Kubernetes service account acc
 ```bash
 gcloud iam service-accounts add-iam-policy-binding \
     --role roles/iam.workloadIdentityUser \
-    --member serviceAccount:[PROJECT_ID].svc.id.goog[velero/velero] \
+    --member "serviceAccount:[PROJECT_ID].svc.id.goog[velero/velero]" \
     [GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com
 ```
 
