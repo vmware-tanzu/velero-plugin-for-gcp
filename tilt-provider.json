@@ -1,6 +1,7 @@
 {
   "name": "gcp",
   "config": {
+    "plugin_name": "velero-plugin-for-gcp",
     "context": ".",
     "image": "velero/velero-plugin-for-gcp",
     "live_reload_deps": [
