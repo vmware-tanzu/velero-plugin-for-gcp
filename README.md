@@ -17,15 +17,21 @@ You can run Kubernetes on Google Cloud Platform in either:
 
 For common use-cases, take a look at the [Examples][10] page.
 
+
 ## Compatibility
 
 Below is a listing of plugin versions and respective Velero versions that are compatible.
 
 | Plugin Version  | Velero Version |
 |-----------------|----------------|
+| v1.1.x          | v1.5.x         |
 | v1.1.x          | v1.4.x         |
 | v1.0.x          | v1.3.x         |
 | v1.0.x          | v1.2.0         |
+
+## Filing issues
+
+If you would like to file a GitHub issue for the plugin, please open the issue on the [core Velero repo][103]
 
 ## Setup
 
@@ -197,3 +203,4 @@ For more complex installation needs, use either the Helm chart, or add `--dry-ru
 
 [101]: https://github.com/vmware-tanzu/velero-plugin-for-gcp/workflows/Main%20CI/badge.svg
 [102]: https://github.com/vmware-tanzu/velero-plugin-for-gcp/actions?query=workflow%3A"Main+CI"
+[103]: https://github.com/vmware-tanzu/velero/issues/new/choose
