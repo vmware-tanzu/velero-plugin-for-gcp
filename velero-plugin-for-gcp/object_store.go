@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
+	"io/ioutil"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -34,9 +35,9 @@ import (
 )
 
 const (
-	credentialsEnvVar    = "GOOGLE_APPLICATION_CREDENTIALS"
-	kmsKeyNameConfigKey  = "kmsKeyName"
-	serviceAccountConfig = "serviceAccount"
+	kmsKeyNameConfigKey      = "kmsKeyName"
+	serviceAccountConfig     = "serviceAccount"
+	credentialsFileConfigKey = "credentialsFile"
 )
 
 // bucketWriter wraps the GCP SDK functions for accessing object store so they can be faked for testing.
@@ -76,12 +77,32 @@ func newObjectStore(logger logrus.FieldLogger) *ObjectStore {
 }
 
 func (o *ObjectStore) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateObjectStoreConfigKeys(config, kmsKeyNameConfigKey, serviceAccountConfig); err != nil {
+	if err := veleroplugin.ValidateObjectStoreConfigKeys(config, kmsKeyNameConfigKey, serviceAccountConfig, credentialsFileConfigKey); err != nil {
 		return err
 	}
 	// Find default token source to extract the GoogleAccessID
 	ctx := context.Background()
-	creds, err := google.FindDefaultCredentials(ctx)
+
+	clientOptions := []option.ClientOption{
+		option.WithScopes(storage.ScopeReadWrite),
+	}
+
+	var creds *google.Credentials
+	var err error
+
+	// Prioritize the credentials file path in config, if it exists
+	if credentialsFile, ok := config[credentialsFileConfigKey]; ok {
+		b, err := ioutil.ReadFile(credentialsFile)
+		if err != nil {
+			return errors.Wrapf(err, "error reading provided credentials file %v", credentialsFile)
+		}
+		creds, err = google.CredentialsFromJSON(ctx, b)
+		clientOptions = append(clientOptions, option.WithCredentialsFile(credentialsFile))
+	} else {
+		// If a credentials file does not exist in the config, fall back to
+		// loading default credentials.
+		creds, err = google.FindDefaultCredentials(ctx)
+	}
 
 	if err != nil {
 		return errors.WithStack(err)
@@ -99,7 +120,7 @@ func (o *ObjectStore) Init(config map[string]string) error {
 		return errors.WithStack(err)
 	}
 
-	client, err := storage.NewClient(ctx, option.WithScopes(storage.ScopeReadWrite))
+	client, err := storage.NewClient(ctx, clientOptions...)
 	if err != nil {
 		return errors.WithStack(err)
 	}
