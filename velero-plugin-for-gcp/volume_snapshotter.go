@@ -276,18 +276,23 @@ func getSnapshotTags(veleroTags map[string]string, diskDescription string, log l
 	// use the tags in the disk's description (if a valid JSON doc) plus the tags arg
 	// to set the snapshot's description.
 	var snapshotTags map[string]string
-	if err := json.Unmarshal([]byte(diskDescription), &snapshotTags); err != nil {
-		// error decoding the disk's description, so just use the Velero-assigned tags
-		log.WithError(err).
-			Error("unable to decode disk's description as JSON, so only applying Velero-assigned tags to snapshot")
-		snapshotTags = veleroTags
-	} else {
-		// merge Velero-assigned tags with the disk's tags (note that we want current
-		// Velero-assigned tags to overwrite any older versions of them that may exist
-		// due to prior snapshots/restores)
-		for k, v := range veleroTags {
-			snapshotTags[k] = v
+	if diskDescription != "" {
+		if err := json.Unmarshal([]byte(diskDescription), &snapshotTags); err != nil {
+			// error decoding the disk's description, so just use the Velero-assigned tags
+			log.WithError(err).
+				Error("unable to decode disk's description as JSON, so only applying Velero-assigned tags to snapshot")
+			snapshotTags = veleroTags
+		} else {
+			// merge Velero-assigned tags with the disk's tags (note that we want current
+			// Velero-assigned tags to overwrite any older versions of them that may exist
+			// due to prior snapshots/restores)
+			for k, v := range veleroTags {
+				snapshotTags[k] = v
+			}
 		}
+	} else {
+		// no disk description provided, assign velero tags
+		snapshotTags = veleroTags
 	}
 
 	if len(snapshotTags) == 0 {
