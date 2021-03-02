@@ -41,6 +41,8 @@ To set up Velero on GCP, you:
 * [Set permissions for Velero][2]
 * [Install and start Velero][3]
 
+You can also use this plugin to create an additional [Backup Storage Location][12].
+
 If you do not have the `gcloud` and `gsutil` CLIs locally installed, follow the [user guide][5] to set them up.
 
 ## Create an GCS bucket
@@ -60,7 +62,7 @@ See [the GKE documentation][22] for more information.
 
 ### Option 1: Set permissions with a Service Account
 
-To integrate Velero with GCP, create a Velero-specific [Service Account][15]:
+To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
 
 1. View your current config settings:
 
@@ -187,6 +189,52 @@ Additionally, you can specify `--use-restic` to enable restic support, and `--wa
 
 For more complex installation needs, use either the Helm chart, or add `--dry-run -o yaml` options for generating the YAML representation for the installation.
 
+## Create an additional Backup Storage Location
+
+If you are using Velero v1.6.0 or later, you can create additional GCP [Backup Storage Locations][13] that use their own credentials.
+These can also be created alongside Backup Storage Locations that use other providers.
+
+### Limitations
+It is not possible to use different credentials for additional Backup Storage Locations if you are pod based authentication such as [Workload Identity][14].
+
+### Prerequisites
+
+* Velero 1.6.0 or later
+* GCP plugin must be installed, either at install time, or by running `velero plugin install velero/velero-plugin-for-gcp:v1.2.0`
+
+### Configure GCS bucket and credentials
+
+To configure a new Backup Storage Location with its own credentials, it is necessary to follow the steps above to [create the bucket to use][1] and to [generate the credentials file][15] to interact with that bucket.
+Once you have created the credentials file, create a [Kubernetes Secret][16] in the Velero namespace that contains these credentials:
+
+```bash
+kubectl create secret generic -n velero bsl-credentials --from-file=gcp=</path/to/credentialsfile>
+```
+
+This will create a secret named `bsl-credentials` with a single key (`gcp`) which contains the contents of your credentials file.
+The name and key of this secret will be given to Velero when creating the Backup Storage Location, so it knows which secret data to use.
+
+### Create Backup Storage Location
+
+Once the bucket and credentials have been configured, these can be used to create the new Backup Storage Location:
+
+```bash
+velero backup-location create <bsl-name> \
+  --provider gcp \
+  --bucket $BUCKET \
+  --credential=bsl-credentials=gcp
+```
+
+The Backup Storage Location is ready to use when it has the phase `Available`.
+You can check this with the following command:
+
+```bash
+velero backup-location get
+```
+
+To use this new Backup Storage Location when performing a backup, use the flag `--storage-location <bsl-name>` when running `velero backup create`.
+
+
 [1]: #Create-an-GCS-bucket
 [2]: #Set-permissions-for-Velero
 [3]: #Install-and-start-Velero
@@ -197,7 +245,12 @@ For more complex installation needs, use either the Helm chart, or add `--dry-ru
 [9]: https://velero.io/docs/customize-installation/
 [10]: ./examples
 [11]: https://velero.io/docs/faq/
-[15]: https://cloud.google.com/compute/docs/access/service-accounts
+[12]: #Create-an-additional-Backup-Storage-Location
+[13]: https://velero.io/docs/latest/api-types/backupstoragelocation/
+[14]: #option-2-set-permissions-with-using-workload-identity-optional
+[15]: #option-1-set-permissions-with-a-service-account
+[16]: https://kubernetes.io/docs/concepts/configuration/secret/
+[21]: https://cloud.google.com/compute/docs/access/service-accounts
 [22]: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#iam-rolebinding-bootstrap
 [24]: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
 
