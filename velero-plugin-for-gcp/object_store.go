@@ -87,6 +87,7 @@ func (o *ObjectStore) Init(config map[string]string) error {
 		option.WithScopes(storage.ScopeReadWrite),
 	}
 
+	// Credentials to use when creating signed URLs.
 	var creds *google.Credentials
 	var err error
 
@@ -96,11 +97,14 @@ func (o *ObjectStore) Init(config map[string]string) error {
 		if err != nil {
 			return errors.Wrapf(err, "error reading provided credentials file %v", credentialsFile)
 		}
+
 		creds, err = google.CredentialsFromJSON(ctx, b)
+
+		// If using a credentials file, we also need to pass it when creating the client.
 		clientOptions = append(clientOptions, option.WithCredentialsFile(credentialsFile))
 	} else {
 		// If a credentials file does not exist in the config, fall back to
-		// loading default credentials.
+		// loading default credentials for signed URLs.
 		creds, err = google.FindDefaultCredentials(ctx)
 	}
 
