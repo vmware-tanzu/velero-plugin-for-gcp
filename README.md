@@ -137,7 +137,7 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
 
 If you are running Velero on a GKE cluster with workload identity enabled, you may want to bind Velero's Kubernetes service account to a GCP service account with the appropriate permissions instead of providing the key file during installation.
 
-To do this, you must grant the GCP service account(the one you created in Step 3) the 'iam.serviceAccounts.signBlob' role. This is so that Velero's Kubernetes service account can create signed urls for the GCP bucket.
+To do this, you must add `iam.serviceAccounts.signBlob` permission to the GCP Service Account policies (the one you created in [Option 1](#option-1-set-permissions-with-a-service-account), Step 3). This is so that Velero's Kubernetes service account can create signed urls for the GCP bucket.
 
 Next, add an IAM policy binding to grant Velero's Kubernetes service account access to your created GCP service account.
 
