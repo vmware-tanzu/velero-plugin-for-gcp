@@ -12,7 +12,7 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.5.1
-	github.com/vmware-tanzu/velero v1.6.1
+	github.com/vmware-tanzu/velero v1.6.2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.24.0
 	k8s.io/api v0.19.12
