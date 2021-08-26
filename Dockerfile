@@ -17,9 +17,10 @@ COPY . /go/src/velero-plugin-for-gcp
 WORKDIR /go/src/velero-plugin-for-gcp
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o /go/bin/velero-plugin-for-gcp ./velero-plugin-for-gcp
 
+FROM busybox:1.33.1 AS busybox
 
-FROM ubuntu:bionic
-RUN mkdir /plugins
+FROM gcr.io/distroless/base-debian10:nonroot
 COPY --from=build /go/bin/velero-plugin-for-gcp /plugins/
-USER nobody:nogroup
-ENTRYPOINT ["/bin/bash", "-c", "cp /plugins/* /target/."]
+COPY --from=busybox /bin/cp /bin/cp
+USER nonroot:nonroot
+ENTRYPOINT ["cp", "/plugins/velero-plugin-for-gcp", "/target/."]
