@@ -24,6 +24,7 @@ Below is a listing of plugin versions and respective Velero versions that are co
 
 | Plugin Version  | Velero Version |
 |-----------------|----------------|
+| v1.3.x          | v1.7.x         |
 | v1.2.x          | v1.6.x         |
 | v1.1.x          | v1.5.x         |
 | v1.1.x          | v1.4.x         |
@@ -161,7 +162,7 @@ Install Velero, including all prerequisites, into the cluster and start the depl
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.2.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.3.0 \
     --bucket $BUCKET \
     --secret-file ./credentials-velero
 ```
@@ -173,7 +174,7 @@ You must add a service account annotation to the Kubernetes service account so t
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.2.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.3.0 \
     --bucket $BUCKET \
     --no-secret \
     --sa-annotations iam.gke.io/gcp-service-account=[GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com \
@@ -201,7 +202,7 @@ It is not possible to use different credentials for additional Backup Storage Lo
 ### Prerequisites
 
 * Velero 1.6.0 or later
-* GCP plugin must be installed, either at install time, or by running `velero plugin add velero/velero-plugin-for-gcp:v1.2.0`
+* GCP plugin must be installed, either at install time, or by running `velero plugin add velero/velero-plugin-for-gcp:plugin-version`, replace the `plugin-version` with the corresponding value
 
 ### Configure GCS bucket and credentials
 
