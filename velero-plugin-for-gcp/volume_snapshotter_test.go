@@ -18,9 +18,11 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
@@ -58,6 +60,73 @@ func TestGetVolumeID(t *testing.T) {
 	assert.Equal(t, "abc123", volumeID)
 }
 
+func TestGetVolumeIDForCSI(t *testing.T) {
+	b := &VolumeSnapshotter{
+		log: logrus.New(),
+	}
+
+	cases := []struct {
+		name    string
+		csiJSON string
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "gke csi driver",
+			csiJSON: `{
+		      "driver": "pd.csi.storage.gke.io",
+		      "fsType": "ext4",
+    		  "volumeAttributes": {
+				 "storage.kubernetes.io/csiProvisionerIdentity": "1637243273131-8081-pd.csi.storage.gke.io"
+			  },
+			  "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			want:    "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
+			wantErr: false,
+		},
+		{
+			name: "gke csi driver with invalid handle name",
+			csiJSON: `{
+		      "driver": "pd.csi.storage.gke.io",
+		      "fsType": "ext4",
+			  "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "unknown driver",
+			csiJSON: `{
+		      "driver": "xxx.csi.storage.gke.io",
+		      "fsType": "ext4",
+			  "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			want:    "",
+			wantErr: false,
+		},
+	}
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			res := &unstructured.Unstructured{
+				Object: map[string]interface{}{},
+			}
+			csi := map[string]interface{}{}
+			json.Unmarshal([]byte(tt.csiJSON), &csi)
+			res.Object["spec"] = map[string]interface{}{
+				"csi": csi,
+			}
+			volumeID, err := b.GetVolumeID(res)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, volumeID)
+		})
+	}
+
+}
+
 func TestSetVolumeID(t *testing.T) {
 	b := &VolumeSnapshotter{}
 
@@ -81,6 +150,74 @@ func TestSetVolumeID(t *testing.T) {
 	require.NoError(t, runtime.DefaultUnstructuredConverter.FromUnstructured(updatedPV.UnstructuredContent(), res))
 	require.NotNil(t, res.Spec.GCEPersistentDisk)
 	assert.Equal(t, "123abc", res.Spec.GCEPersistentDisk.PDName)
+}
+
+func TestSetVolumeIDForCSI(t *testing.T) {
+	b := &VolumeSnapshotter{
+		log: logrus.New(),
+	}
+
+	cases := []struct {
+		name     string
+		csiJSON  string
+		volumeID string
+		wantErr  bool
+	}{
+		{
+			name: "set ID to CSI with GKE pd CSI driver",
+			csiJSON: `{
+				 "driver": "pd.csi.storage.gke.io",
+				 "fsType": "ext4",
+				 "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:  false,
+		},
+		{
+			name: "set ID to CSI with GKE pd CSI driver, but the volumeHandle is invalid",
+			csiJSON: `{
+				 "driver": "pd.csi.storage.gke.io",
+				 "fsType": "ext4",
+				 "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:  true,
+		},
+		{
+			name: "set ID to CSI with unknown driver",
+			csiJSON: `"{
+				 "driver": "xxx.csi.storage.gke.io",
+				 "fsType": "ext4",
+				 "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:  true,
+		},
+	}
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			res := &unstructured.Unstructured{
+				Object: map[string]interface{}{},
+			}
+			csi := map[string]interface{}{}
+			json.Unmarshal([]byte(tt.csiJSON), &csi)
+			res.Object["spec"] = map[string]interface{}{
+				"csi": csi,
+			}
+			originalVolHanle, _ := csi["volumeHandle"].(string)
+			newRes, err := b.SetVolumeID(res, tt.volumeID)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				newPV := new(v1.PersistentVolume)
+				require.NoError(t, runtime.DefaultUnstructuredConverter.FromUnstructured(newRes.UnstructuredContent(), newPV))
+				ind := strings.LastIndex(newPV.Spec.CSI.VolumeHandle, "/")
+				assert.Equal(t, tt.volumeID, newPV.Spec.CSI.VolumeHandle[ind+1:])
+				assert.Equal(t, originalVolHanle[:ind], newPV.Spec.CSI.VolumeHandle[:ind])
+			}
+		})
+	}
 }
 
 func TestGetSnapshotTags(t *testing.T) {
