@@ -187,7 +187,7 @@ For more information on configuring workload identity on GKE, look at the [offic
 
 Install Velero, including all prerequisites, into the cluster and start the deployment. This will create a namespace called `velero`, and place a deployment named `velero` in it.
 
-**If using a Googl Service Account Key**:
+**If using a Google Service Account Key**:
 
 ```bash
 velero install \
