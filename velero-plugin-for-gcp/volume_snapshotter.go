@@ -18,7 +18,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -39,7 +41,10 @@ const (
 	zoneSeparator       = "__"
 	projectKey          = "project"
 	snapshotLocationKey = "snapshotLocation"
+	pdCSIDriver         = "pd.csi.storage.gke.io"
 )
+
+var pdVolRegexp = regexp.MustCompile(`^projects\/[^\/]+\/zones\/[^\/]+\/disks\/[^\/]+$`)
 
 type VolumeSnapshotter struct {
 	log              logrus.FieldLogger
@@ -87,7 +92,7 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 
 // isMultiZone returns true if the failure-domain tag contains
 // double underscore, which is the separator used
-// by GKE when a storage class spans multiple availablity
+// by GKE when a storage class spans multiple availability
 // zones.
 func isMultiZone(volumeAZ string) bool {
 	return strings.Contains(volumeAZ, zoneSeparator)
@@ -309,6 +314,7 @@ func getSnapshotTags(veleroTags map[string]string, diskDescription string, log l
 }
 
 func (b *VolumeSnapshotter) DeleteSnapshot(snapshotID string) error {
+
 	_, err := b.gce.Snapshots.Delete(b.snapshotProject, snapshotID).Do()
 
 	// if it's a 404 (not found) error, we don't need to return an error
@@ -329,15 +335,28 @@ func (b *VolumeSnapshotter) GetVolumeID(unstructuredPV runtime.Unstructured) (st
 		return "", errors.WithStack(err)
 	}
 
-	if pv.Spec.GCEPersistentDisk == nil {
-		return "", nil
+	if pv.Spec.CSI != nil {
+		driver := pv.Spec.CSI.Driver
+		if driver == pdCSIDriver {
+			handle := pv.Spec.CSI.VolumeHandle
+			if !pdVolRegexp.MatchString(handle) {
+				return "", fmt.Errorf("invalid volumeHandle for CSI driver:%s, expected projects/{project}/zones/{zone}/disks/{name}, got %s",
+					pdCSIDriver, handle)
+			}
+			l := strings.Split(handle, "/")
+			return l[len(l)-1], nil
+		}
+		b.log.Infof("Unable to handle CSI driver: %s", driver)
 	}
 
-	if pv.Spec.GCEPersistentDisk.PDName == "" {
-		return "", errors.New("spec.gcePersistentDisk.pdName not found")
+	if pv.Spec.GCEPersistentDisk != nil {
+		if pv.Spec.GCEPersistentDisk.PDName == "" {
+			return "", errors.New("spec.gcePersistentDisk.pdName not found")
+		}
+		return pv.Spec.GCEPersistentDisk.PDName, nil
 	}
 
-	return pv.Spec.GCEPersistentDisk.PDName, nil
+	return "", nil
 }
 
 func (b *VolumeSnapshotter) SetVolumeID(unstructuredPV runtime.Unstructured, volumeID string) (runtime.Unstructured, error) {
@@ -345,13 +364,26 @@ func (b *VolumeSnapshotter) SetVolumeID(unstructuredPV runtime.Unstructured, vol
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredPV.UnstructuredContent(), pv); err != nil {
 		return nil, errors.WithStack(err)
 	}
-
-	if pv.Spec.GCEPersistentDisk == nil {
-		return nil, errors.New("spec.gcePersistentDisk not found")
+	if pv.Spec.CSI != nil {
+		// PV is provisioned by CSI driver
+		driver := pv.Spec.CSI.Driver
+		if driver == pdCSIDriver {
+			handle := pv.Spec.CSI.VolumeHandle
+			// To restore in the same AZ, here we only replace the 'disk' chunk.
+			if !pdVolRegexp.MatchString(handle) {
+				return nil, fmt.Errorf("invalid volumeHandle for restore with CSI driver:%s, expected projects/{project}/zones/{zone}/disks/{name}, got %s",
+					pdCSIDriver, handle)
+			}
+			pv.Spec.CSI.VolumeHandle = handle[:strings.LastIndex(handle, "/")+1] + volumeID
+		} else {
+			return nil, fmt.Errorf("unable to handle CSI driver: %s", driver)
+		}
+	} else if pv.Spec.GCEPersistentDisk != nil {
+		// PV is provisioned by in-tree driver
+		pv.Spec.GCEPersistentDisk.PDName = volumeID
+	} else {
+		return nil, errors.New("spec.csi and spec.gcePersistentDisk not found")
 	}
-
-	pv.Spec.GCEPersistentDisk.PDName = volumeID
-
 	res, err := runtime.DefaultUnstructuredConverter.ToUnstructured(pv)
 	if err != nil {
 		return nil, errors.WithStack(err)
