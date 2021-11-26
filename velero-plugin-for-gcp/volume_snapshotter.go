@@ -284,8 +284,7 @@ func getSnapshotTags(veleroTags map[string]string, diskDescription string, log l
 	if diskDescription != "" {
 		if err := json.Unmarshal([]byte(diskDescription), &snapshotTags); err != nil {
 			// error decoding the disk's description, so just use the Velero-assigned tags
-			log.WithError(err).
-				Error("unable to decode disk's description as JSON, so only applying Velero-assigned tags to snapshot")
+			log.WithField("error", err.Error()).Warning("unable to decode disk's description as JSON, so only applying Velero-assigned tags to snapshot")
 			snapshotTags = veleroTags
 		} else {
 			// merge Velero-assigned tags with the disk's tags (note that we want current
