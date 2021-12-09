@@ -74,34 +74,34 @@ func TestGetVolumeIDForCSI(t *testing.T) {
 		{
 			name: "gke csi driver",
 			csiJSON: `{
-		      "driver": "pd.csi.storage.gke.io",
-		      "fsType": "ext4",
-    		  "volumeAttributes": {
-				 "storage.kubernetes.io/csiProvisionerIdentity": "1637243273131-8081-pd.csi.storage.gke.io"
-			  },
-			  "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+				"driver": "pd.csi.storage.gke.io",
+				"fsType": "ext4",
+				"volumeAttributes": {
+					"storage.kubernetes.io/csiProvisionerIdentity": "1637243273131-8081-pd.csi.storage.gke.io"
+				},
+				"volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			want:    "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
+			want: "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
 			wantErr: false,
 		},
 		{
 			name: "gke csi driver with invalid handle name",
 			csiJSON: `{
-		      "driver": "pd.csi.storage.gke.io",
-		      "fsType": "ext4",
-			  "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+				"driver": "pd.csi.storage.gke.io",
+				"fsType": "ext4",
+				"volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			want:    "",
+			want: "",
 			wantErr: true,
 		},
 		{
 			name: "unknown driver",
 			csiJSON: `{
-		      "driver": "xxx.csi.storage.gke.io",
-		      "fsType": "ext4",
-			  "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+				"driver": "xxx.csi.storage.gke.io",
+				"fsType": "ext4",
+				"volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			want:    "",
+			want: "",
 			wantErr: false,
 		},
 	}
