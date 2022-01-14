@@ -10,6 +10,8 @@ This repository contains these plugins to support running Velero on GCP:
 
 - A volume snapshotter plugin for creating snapshots from volumes (during a backup) and volumes from snapshots (during a restore) on Google Compute Engine Disks.
 
+  - Since v1.4.0, the snapshotter plugin can handle the volumes provisioned by CSI driver `pd.csi.storage.gke.io`.
+
 You can run Kubernetes on Google Cloud Platform in either:
 
 * Kubernetes on Google Compute Engine virtual machines
