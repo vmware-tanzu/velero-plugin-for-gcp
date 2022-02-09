@@ -12,10 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.17-buster AS build
+FROM --platform=$BUILDPLATFORM golang:1.17-buster AS build
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+ENV GOOS=${TARGETOS} \
+    GOARCH=${TARGETARCH} \
+    GOARM=${TARGETVARIANT}
+
 COPY . /go/src/velero-plugin-for-gcp
 WORKDIR /go/src/velero-plugin-for-gcp
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o /go/bin/velero-plugin-for-gcp ./velero-plugin-for-gcp
+RUN export GOARM=$( echo "${GOARM}" | cut -c2-) && \
+    CGO_ENABLED=0 go build -v -o /go/bin/velero-plugin-for-gcp ./velero-plugin-for-gcp
 
 FROM busybox:1.34.1 AS busybox
 
