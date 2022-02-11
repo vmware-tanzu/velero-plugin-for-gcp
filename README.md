@@ -65,8 +65,7 @@ gsutil mb gs://$BUCKET/
 If you run Google Kubernetes Engine (GKE), make sure that your current IAM user is a cluster-admin. This role is required to create RBAC objects.
 See [the GKE documentation][22] for more information.
 
-### Option 1: Set permissions with a Service Account
-
+### Create Google Service Account (GSA):
 To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
 
 1. View your current config settings:
@@ -84,7 +83,8 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
 2. Create a service account:
 
     ```bash
-    gcloud iam service-accounts create velero \
+    GSA_NAME=velero
+    gcloud iam service-accounts create $GSA_NAME \
         --display-name "Velero service account"
     ```
 
@@ -104,8 +104,9 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
       --format 'value(email)')
     ```
 
-3. Attach policies to give `velero` the necessary permissions to function:
-
+### Create Custom Role with Permissions for the Velero GSA:
+These permissions are required by Velero to manage snapshot resources in the GCP Project.
+    
     ```bash
     ROLE_PERMISSIONS=(
         compute.disks.get
@@ -117,7 +118,7 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
         compute.snapshots.delete
         compute.zones.get
     )
-
+    
     gcloud iam roles create velero.server \
         --project $PROJECT_ID \
         --title "Velero Server" \
@@ -130,27 +131,57 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
     gsutil iam ch serviceAccount:$SERVICE_ACCOUNT_EMAIL:objectAdmin gs://${BUCKET}
     ```
 
-4. Create a service account key, specifying an output file (`credentials-velero`) in your local directory:
+Note: 
+To allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket, 
+add `iam.serviceAccounts.signBlob` permissions above. (optional)
+### Grant access to Velero 
+This can be done in 2 different options.
+
+#### Option 1: Using Service Account Key
+This involves creating a Google Service Account Key and using it as `--secret-file` during [installation](#Install-and-start-Velero).
+
+1. Create a service account key, specifying an output file (`credentials-velero`) in your local directory:
 
     ```bash
     gcloud iam service-accounts keys create credentials-velero \
         --iam-account $SERVICE_ACCOUNT_EMAIL
     ```
 
-### Option 2: Set permissions with using Workload Identity (Optional)
+Note that Google Service Account keys are valid for decades (no clear expiry date) - so store it securely or rotate them as often as possible or both. 
 
-If you are running Velero on a GKE cluster with workload identity enabled, you may want to bind Velero's Kubernetes service account to a GCP service account with the appropriate permissions instead of providing the key file during installation.
+#### Option 2: Using Workload Identity
+This requires a GKE cluster with workload identity enabled.
 
-To do this, you must grant the GCP service account(the one you created in Step 3) the 'iam.serviceAccounts.signBlob' role. This is so that Velero's Kubernetes service account can create signed urls for the GCP bucket.
+1. Create Velero Namespace
+This is required because Kuberenetes Service Account (step 2) resides in a namespace
 
-Next, add an IAM policy binding to grant Velero's Kubernetes service account access to your created GCP service account.
+    ```bash
+    NAMESPACE=velero
+    kubectl create namespace $NAMESPACE
+    ```
 
-```bash
-gcloud iam service-accounts add-iam-policy-binding \
-    --role roles/iam.workloadIdentityUser \
-    --member "serviceAccount:[PROJECT_ID].svc.id.goog[velero/velero]" \
-    [GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com
-```
+1. Create Kubernetes Service Account
+This is required when binding to the Google Service Account.
+Namespace is already created in step 1 above.
+
+    ```bash
+    KSA_NAME=velero
+    kubectl create serviceaccount $KSA_NAME --namespace $NAMESPACE
+    ```
+
+3. Add IAM Policy Binding for Velero's Kubernetes service account to a GCP service account
+
+    ```bash
+    gcloud iam service-accounts add-iam-policy-binding \
+        --role roles/iam.workloadIdentityUser \
+        --member "serviceAccount:[$PROJECT_ID].svc.id.goog[$NAMESPACE/$KSA_NAME]" \
+        [$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com
+    ```
+
+In this case:
+- `[$NAMESPACE/$KSA_NAME]` are Kubernetes Namespace and Service Account created in step 1 and 2.
+- `PROJECT_ID` is the [Google Project ID](#Create-Google-Service-Account) - Step 1 and
+- `GSA_NAME` is the name of the [Google Service Account](#Create-Google-Service-Account) - Step 2.
 
 For more information on configuring workload identity on GKE, look at the [official GCP documentation][24] for more details.
 
@@ -160,7 +191,7 @@ For more information on configuring workload identity on GKE, look at the [offic
 
 Install Velero, including all prerequisites, into the cluster and start the deployment. This will create a namespace called `velero`, and place a deployment named `velero` in it.
 
-**If using a Service Account**:
+**If using a Google Service Account Key**:
 
 ```bash
 velero install \
@@ -180,8 +211,8 @@ velero install \
     --plugins velero/velero-plugin-for-gcp:v1.4.0 \
     --bucket $BUCKET \
     --no-secret \
-    --sa-annotations iam.gke.io/gcp-service-account=[GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com \
-    --backup-location-config serviceAccount=[GSA_NAME]@[PROJECT_ID].iam.gserviceaccount.com \
+    --sa-annotations iam.gke.io/gcp-service-account=[$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com \
+    --backup-location-config serviceAccount=[$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com \
 ```
 
 Additionally, you can specify `--use-restic` to enable restic support, and `--wait` to wait for the deployment to be ready.
@@ -192,7 +223,7 @@ Additionally, you can specify `--use-restic` to enable restic support, and `--wa
 
 (Optional) [Customize the Velero installation][9] further to meet your needs.
 
-For more complex installation needs, use either the Helm chart, or add `--dry-run -o yaml` options for generating the YAML representation for the installation.
+For more complex installation needs, use either the [Helm chart](https://github.com/vmware-tanzu/helm-charts), or add `--dry-run -o yaml` options for generating the YAML representation for the installation.
 
 ## Create an additional Backup Storage Location
 
