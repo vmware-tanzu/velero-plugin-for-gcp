@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.13-buster AS build
+FROM golang:1.17.7-buster AS build
 COPY . /go/src/velero-plugin-for-gcp
 WORKDIR /go/src/velero-plugin-for-gcp
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o /go/bin/velero-plugin-for-gcp ./velero-plugin-for-gcp
 
-FROM busybox:1.33.1 AS busybox
+FROM busybox:1.34.1 AS busybox
 
 FROM gcr.io/distroless/base-debian10:nonroot
 COPY --from=build /go/bin/velero-plugin-for-gcp /plugins/
