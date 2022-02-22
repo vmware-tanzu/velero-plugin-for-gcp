@@ -44,7 +44,7 @@ const (
 	pdCSIDriver         = "pd.csi.storage.gke.io"
 )
 
-var pdVolRegexp = regexp.MustCompile(`^projects\/[^\/]+\/zones\/[^\/]+\/disks\/[^\/]+$`)
+var pdVolRegexp = regexp.MustCompile(`^projects\/[^\/]+\/(zones|regions)\/[^\/]+\/disks\/[^\/]+$`)
 
 type VolumeSnapshotter struct {
 	log              logrus.FieldLogger
