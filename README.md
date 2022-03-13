@@ -117,6 +117,10 @@ These permissions are required by Velero to manage snapshot resources in the GCP
         compute.snapshots.useReadOnly
         compute.snapshots.delete
         compute.zones.get
+        storage.objects.create
+        storage.objects.delete
+        storage.objects.get
+        storage.objects.list
     )
     
     gcloud iam roles create velero.server \
