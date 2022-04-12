@@ -70,7 +70,10 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 	}
 	b.snapshotLocation = config[snapshotLocationKey]
 
-	b.volumeProject = creds.ProjectID
+	b.volumeProject = config[projectKey]
+	if b.volumeProject == "" {
+		b.volumeProject = creds.ProjectID
+	}
 
 	// get snapshot project from 'project' config key if specified,
 	// otherwise from the credentials file
