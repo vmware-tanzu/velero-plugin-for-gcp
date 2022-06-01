@@ -107,33 +107,33 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
 ### Create Custom Role with Permissions for the Velero GSA:
 These permissions are required by Velero to manage snapshot resources in the GCP Project.
     
-    ```bash
-    ROLE_PERMISSIONS=(
-        compute.disks.get
-        compute.disks.create
-        compute.disks.createSnapshot
-        compute.snapshots.get
-        compute.snapshots.create
-        compute.snapshots.useReadOnly
-        compute.snapshots.delete
-        compute.zones.get
-        storage.objects.create
-        storage.objects.delete
-        storage.objects.get
-        storage.objects.list
-    )
-    
-    gcloud iam roles create velero.server \
-        --project $PROJECT_ID \
-        --title "Velero Server" \
-        --permissions "$(IFS=","; echo "${ROLE_PERMISSIONS[*]}")"
+```bash
+ROLE_PERMISSIONS=(
+    compute.disks.get
+    compute.disks.create
+    compute.disks.createSnapshot
+    compute.snapshots.get
+    compute.snapshots.create
+    compute.snapshots.useReadOnly
+    compute.snapshots.delete
+    compute.zones.get
+    storage.objects.create
+    storage.objects.delete
+    storage.objects.get
+    storage.objects.list
+)
 
-    gcloud projects add-iam-policy-binding $PROJECT_ID \
-        --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
-        --role projects/$PROJECT_ID/roles/velero.server
+gcloud iam roles create velero.server \
+    --project $PROJECT_ID \
+    --title "Velero Server" \
+    --permissions "$(IFS=","; echo "${ROLE_PERMISSIONS[*]}")"
 
-    gsutil iam ch serviceAccount:$SERVICE_ACCOUNT_EMAIL:objectAdmin gs://${BUCKET}
-    ```
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
+    --role projects/$PROJECT_ID/roles/velero.server
+
+gsutil iam ch serviceAccount:$SERVICE_ACCOUNT_EMAIL:objectAdmin gs://${BUCKET}
+```
 
 Note: 
 To allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket, 
@@ -146,10 +146,10 @@ This involves creating a Google Service Account Key and using it as `--secret-fi
 
 1. Create a service account key, specifying an output file (`credentials-velero`) in your local directory:
 
-    ```bash
-    gcloud iam service-accounts keys create credentials-velero \
-        --iam-account $SERVICE_ACCOUNT_EMAIL
-    ```
+```bash
+gcloud iam service-accounts keys create credentials-velero \
+    --iam-account $SERVICE_ACCOUNT_EMAIL
+```
 
 Note that Google Service Account keys are valid for decades (no clear expiry date) - so store it securely or rotate them as often as possible or both. 
 
@@ -159,28 +159,28 @@ This requires a GKE cluster with workload identity enabled.
 1. Create Velero Namespace
 This is required because Kuberenetes Service Account (step 2) resides in a namespace
 
-    ```bash
-    NAMESPACE=velero
-    kubectl create namespace $NAMESPACE
-    ```
+```bash
+NAMESPACE=velero
+kubectl create namespace $NAMESPACE
+```
 
 1. Create Kubernetes Service Account
 This is required when binding to the Google Service Account.
 Namespace is already created in step 1 above.
 
-    ```bash
-    KSA_NAME=velero
-    kubectl create serviceaccount $KSA_NAME --namespace $NAMESPACE
-    ```
+```bash
+KSA_NAME=velero
+kubectl create serviceaccount $KSA_NAME --namespace $NAMESPACE
+```
 
 3. Add IAM Policy Binding for Velero's Kubernetes service account to a GCP service account
 
-    ```bash
-    gcloud iam service-accounts add-iam-policy-binding \
-        --role roles/iam.workloadIdentityUser \
-        --member "serviceAccount:[$PROJECT_ID].svc.id.goog[$NAMESPACE/$KSA_NAME]" \
-        [$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com
-    ```
+```bash
+gcloud iam service-accounts add-iam-policy-binding \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:[$PROJECT_ID].svc.id.goog[$NAMESPACE/$KSA_NAME]" \
+    [$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com
+```
 
 In this case:
 - `[$NAMESPACE/$KSA_NAME]` are Kubernetes Namespace and Service Account created in step 1 and 2.
