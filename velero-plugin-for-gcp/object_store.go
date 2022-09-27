@@ -99,6 +99,9 @@ func (o *ObjectStore) Init(config map[string]string) error {
 		}
 
 		creds, err = google.CredentialsFromJSON(ctx, b)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 
 		// If using a credentials file, we also need to pass it when creating the client.
 		clientOptions = append(clientOptions, option.WithCredentialsFile(credentialsFile))

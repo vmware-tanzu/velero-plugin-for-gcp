@@ -17,8 +17,10 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
@@ -26,10 +28,10 @@ import (
 	uuid "github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
+	"google.golang.org/api/option"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -59,15 +61,41 @@ func newVolumeSnapshotter(logger logrus.FieldLogger) *VolumeSnapshotter {
 }
 
 func (b *VolumeSnapshotter) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config, snapshotLocationKey, projectKey); err != nil {
+	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config, snapshotLocationKey, projectKey, credentialsFileConfigKey); err != nil {
 		return err
 	}
 
-	/* Works with both credential files and the default compute engine service account */
-	creds, err := google.FindDefaultCredentials(oauth2.NoContext, compute.ComputeScope)
-	if err != nil {
-		return errors.WithStack(err)
+	clientOptions := []option.ClientOption{
+		option.WithScopes(compute.ComputeScope),
 	}
+
+	// Credentials used to connect to GCP compute service.
+	var creds *google.Credentials
+	var err error
+
+	// If credential is provided for the VSL, use it instead of default credential.
+	if credentialsFile, ok := config[credentialsFileConfigKey]; ok {
+		b, err := ioutil.ReadFile(credentialsFile)
+		if err != nil {
+			return errors.Wrapf(err, "error reading provided credentials file %v", credentialsFile)
+		}
+
+		creds, err = google.CredentialsFromJSON(context.TODO(), b)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		// If using a credentials file, we also need to pass it when creating the client.
+		clientOptions = append(clientOptions, option.WithCredentialsFile(credentialsFile))
+	} else {
+		/* Use default credential, when no credential is provisioned in VSL. */
+		creds, err = google.FindDefaultCredentials(context.TODO(), compute.ComputeScope)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		clientOptions = append(clientOptions, option.WithTokenSource(creds.TokenSource))
+	}
+
 	b.snapshotLocation = config[snapshotLocationKey]
 
 	b.volumeProject = config[projectKey]
@@ -81,9 +109,8 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 	if b.snapshotProject == "" {
 		b.snapshotProject = b.volumeProject
 	}
-	client := oauth2.NewClient(oauth2.NoContext, creds.TokenSource)
 
-	gce, err := compute.New(client)
+	gce, err := compute.NewService(context.TODO(), clientOptions...)
 	if err != nil {
 		return errors.WithStack(err)
 	}
