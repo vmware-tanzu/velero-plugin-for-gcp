@@ -81,7 +81,7 @@ func TestGetVolumeIDForCSI(t *testing.T) {
 				},
 				"volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			want: "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
+			want:    "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
 			wantErr: false,
 		},
 		{
@@ -91,7 +91,7 @@ func TestGetVolumeIDForCSI(t *testing.T) {
 				"fsType": "ext4",
 				"volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			want: "",
+			want:    "",
 			wantErr: true,
 		},
 		{
@@ -101,7 +101,7 @@ func TestGetVolumeIDForCSI(t *testing.T) {
 				"fsType": "ext4",
 				"volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			want: "",
+			want:    "",
 			wantErr: false,
 		},
 	}
@@ -129,13 +129,15 @@ func TestGetVolumeIDForCSI(t *testing.T) {
 
 func TestSetVolumeID(t *testing.T) {
 	b := &VolumeSnapshotter{}
+	var updatedPV runtime.Unstructured
+	var err error
 
 	pv := &unstructured.Unstructured{
 		Object: map[string]interface{}{},
 	}
 
 	// missing spec.gcePersistentDisk -> error
-	updatedPV, err := b.SetVolumeID(pv, "abc123")
+	_, err = b.SetVolumeID(pv, "abc123")
 	require.Error(t, err)
 
 	// happy path
