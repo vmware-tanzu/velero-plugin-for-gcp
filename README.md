@@ -108,33 +108,33 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
 ### Create Custom Role with Permissions for the Velero GSA:
 These permissions are required by Velero to manage snapshot resources in the GCP Project.
     
-    ```bash
-    ROLE_PERMISSIONS=(
-        compute.disks.get
-        compute.disks.create
-        compute.disks.createSnapshot
-        compute.snapshots.get
-        compute.snapshots.create
-        compute.snapshots.useReadOnly
-        compute.snapshots.delete
-        compute.zones.get
-        storage.objects.create
-        storage.objects.delete
-        storage.objects.get
-        storage.objects.list
-    )
-    
-    gcloud iam roles create velero.server \
-        --project $PROJECT_ID \
-        --title "Velero Server" \
-        --permissions "$(IFS=","; echo "${ROLE_PERMISSIONS[*]}")"
+```bash
+ROLE_PERMISSIONS=(
+    compute.disks.get
+    compute.disks.create
+    compute.disks.createSnapshot
+    compute.snapshots.get
+    compute.snapshots.create
+    compute.snapshots.useReadOnly
+    compute.snapshots.delete
+    compute.zones.get
+    storage.objects.create
+    storage.objects.delete
+    storage.objects.get
+    storage.objects.list
+)
 
-    gcloud projects add-iam-policy-binding $PROJECT_ID \
-        --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
-        --role projects/$PROJECT_ID/roles/velero.server
+gcloud iam roles create velero.server \
+    --project $PROJECT_ID \
+    --title "Velero Server" \
+    --permissions "$(IFS=","; echo "${ROLE_PERMISSIONS[*]}")"
 
-    gsutil iam ch serviceAccount:$SERVICE_ACCOUNT_EMAIL:objectAdmin gs://${BUCKET}
-    ```
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
+    --role projects/$PROJECT_ID/roles/velero.server
+
+gsutil iam ch serviceAccount:$SERVICE_ACCOUNT_EMAIL:objectAdmin gs://${BUCKET}
+```
 
 Note: 
 To allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket, 
