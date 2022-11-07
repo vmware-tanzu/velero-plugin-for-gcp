@@ -1,6 +1,6 @@
 module github.com/vmware-tanzu/velero-plugin-for-gcp
 
-go 1.17
+go 1.18
 
 require (
 	cloud.google.com/go/storage v1.18.2
