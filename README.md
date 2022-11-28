@@ -139,7 +139,10 @@ These permissions are required by Velero to manage snapshot resources in the GCP
 
 Note: 
 To allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket, 
-add `iam.serviceAccounts.signBlob` permissions above. (optional)
+add `iam.serviceAccounts.signBlob` permissions above.
+This is required if you want to run `velero backup logs`:
+the Velero server has access to GCS but the CLI does not.
+
 ### Grant access to Velero 
 This can be done in 2 different options.
 
