@@ -27,7 +27,7 @@ WORKDIR /go/src/velero-plugin-for-gcp
 RUN export GOARM=$( echo "${GOARM}" | cut -c2-) && \
     CGO_ENABLED=0 go build -v -o /go/bin/velero-plugin-for-gcp ./velero-plugin-for-gcp
 
-FROM busybox:1.34.1 AS busybox
+FROM busybox:1.34.1-uclibc AS busybox
 
 FROM scratch
 COPY --from=build /go/bin/velero-plugin-for-gcp /plugins/
