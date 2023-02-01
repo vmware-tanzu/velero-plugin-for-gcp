@@ -6,7 +6,7 @@
 
 This repository contains these plugins to support running Velero on GCP:
 
-- An object store plugin for persisting and retrieving backups on Google Cloud Storage. Content of backup is log files, warning/error files, restore logs.
+- An object store plugin for persisting and retrieving backups and restores on Google Cloud Storage. Content of backup includes log files, warning/error files, CSI related resources list, Velero snapshots list, Velero PodVolumeBackups, k8s resources list and YAMLs and files created by uploader (Restic and Kopia). Content of restore includes restore logs, warning/error files and coming k8s resources list.
 
 - A volume snapshotter plugin for creating snapshots from volumes (during a backup) and volumes from snapshots (during a restore) on Google Compute Engine Disks.
 
