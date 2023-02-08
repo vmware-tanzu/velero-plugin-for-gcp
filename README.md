@@ -123,6 +123,7 @@ These permissions are required by Velero to manage snapshot resources in the GCP
         storage.objects.delete
         storage.objects.get
         storage.objects.list
+        iam.serviceAccounts.signBlob
     )
     
     gcloud iam roles create velero.server \
@@ -138,10 +139,9 @@ These permissions are required by Velero to manage snapshot resources in the GCP
     ```
 
 Note: 
-To allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket, 
-add `iam.serviceAccounts.signBlob` permissions above.
-This is required if you want to run `velero backup logs`:
-the Velero server has access to GCS but the CLI does not.
+`iam.serviceAccounts.signBlob` permission is used to allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket.
+This is required if you want to run `velero backup logs`, `velero backup download`, `velero backup describe` and `velero restore describe`.
+This is due to those commands need to download some metadata files from S3 bucket to display information needed, and the Velero server has access to GCS but the CLI does not.
 
 ### Grant access to Velero 
 This can be done in 2 different options.
