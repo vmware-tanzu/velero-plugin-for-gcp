@@ -1,1 +1,0 @@
-Use uclibc busybox instead of glibc, because glibc version of busybox changed to dynamic compiled.
