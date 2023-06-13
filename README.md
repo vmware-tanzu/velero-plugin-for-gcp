@@ -154,7 +154,27 @@ This involves creating a Google Service Account Key and using it as `--secret-fi
 
 Note that Google Service Account keys are valid for decades (no clear expiry date) - so store it securely or rotate them as often as possible or both. 
 
-#### Option 2: Using Workload Identity
+#### Option 2: Using File-sourced workforce identity federation short lived credentials
+
+Keep in mind that [Workforce Identity Federation Users cannot generate signed URLs](https://cloud.google.com/iam/docs/federated-identity-supported-services#:~:text=workforce%20identity%20federation%20users%20cannot%20generate%20signed%20URLs.). This means, if you are using Workforce Identity Federation, you will not be able to run `velero backup logs`, `velero backup download`, `velero backup describe` and `velero restore describe`.
+
+This involves creating an external credential file and using it as `--secret-file` during [installation](#Install-and-start-Velero).
+
+1. Create a Workforce Identity Federation external credential file.
+
+    ```bash
+    gcloud iam workforce-pools create-cred-config \
+        locations/global/workforcePools/WORKFORCE_POOL_ID/providers/PROVIDER_ID \
+        --subject-token-type=urn:ietf:params:oauth:token-type:id_token \
+        --credential-source-file=PATH_TO_OIDC_ID_TOKEN \
+        --workforce-pool-user-project=WORKFORCE_POOL_USER_PROJECT \
+        --output-file=config.json
+    ```
+
+#### Option 3: Using GKE Workload Identity
+
+Keep in mind that [Workforce Identity Federation Users cannot generate signed URLs](https://cloud.google.com/iam/docs/federated-identity-supported-services#:~:text=workforce%20identity%20federation%20users%20cannot%20generate%20signed%20URLs.). This means, if you are using Workforce Identity Federation, you will not be able to run `velero backup logs`, `velero backup download`, `velero backup describe` and `velero restore describe`.
+
 This requires a GKE cluster with workload identity enabled.
 
 1. Create Velero Namespace
