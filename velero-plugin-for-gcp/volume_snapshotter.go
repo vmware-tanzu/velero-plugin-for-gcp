@@ -98,10 +98,7 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 
 	b.snapshotLocation = config[snapshotLocationKey]
 
-	b.volumeProject = config[projectKey]
-	if b.volumeProject == "" {
-		b.volumeProject = creds.ProjectID
-	}
+	b.volumeProject = creds.ProjectID
 
 	// get snapshot project from 'project' config key if specified,
 	// otherwise from the credentials file
@@ -275,13 +272,14 @@ func (b *VolumeSnapshotter) createSnapshot(snapshotName, volumeID, volumeAZ stri
 	gceSnap := compute.Snapshot{
 		Name:        snapshotName,
 		Description: getSnapshotTags(tags, disk.Description, b.log),
+		SourceDisk:  disk.SelfLink,
 	}
 
 	if b.snapshotLocation != "" {
 		gceSnap.StorageLocations = []string{b.snapshotLocation}
 	}
 
-	_, err = b.gce.Disks.CreateSnapshot(b.snapshotProject, volumeAZ, volumeID, &gceSnap).Do()
+	_, err = b.gce.Snapshots.Insert(b.snapshotProject, &gceSnap).Do()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
@@ -298,13 +296,14 @@ func (b *VolumeSnapshotter) createRegionSnapshot(snapshotName, volumeID, volumeR
 	gceSnap := compute.Snapshot{
 		Name:        snapshotName,
 		Description: getSnapshotTags(tags, disk.Description, b.log),
+		SourceDisk:  disk.SelfLink,
 	}
 
 	if b.snapshotLocation != "" {
 		gceSnap.StorageLocations = []string{b.snapshotLocation}
 	}
 
-	_, err = b.gce.RegionDisks.CreateSnapshot(b.snapshotProject, volumeRegion, volumeID, &gceSnap).Do()
+	_, err = b.gce.Snapshots.Insert(b.snapshotProject, &gceSnap).Do()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
