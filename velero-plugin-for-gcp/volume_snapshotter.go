@@ -249,6 +249,24 @@ func (b *VolumeSnapshotter) CreateSnapshot(volumeID, volumeAZ string, tags map[s
 	}
 	suffix := "-" + uid.String()
 
+	// List all project quotas and check the "SNAPSHOTS" quota.
+	// If the limit is reached, return an error, so that snapshot
+	// won't get created.
+	p, err := b.gce.Projects.Get(b.volumeProject).Do()
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	for _, quota := range p.Quotas {
+		if quota.Metric == "SNAPSHOTS" {
+			if quota.Usage == quota.Limit {
+				err := fmt.Errorf("snapshots quota on Google Cloud Platform has been reached")
+				return "", errors.WithStack(err)
+			}
+			break
+		}
+	}
+
 	if len(volumeID) <= (63 - len(suffix)) {
 		snapshotName = volumeID + suffix
 	} else {
