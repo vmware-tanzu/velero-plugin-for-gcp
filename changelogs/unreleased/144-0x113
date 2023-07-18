@@ -1,0 +1,2 @@
+Check the "SNAPSHOTS" quota on Google Cloud Platform and do not attempt to create snapshots if the quota is reached.
+
