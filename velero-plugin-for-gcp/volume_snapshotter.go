@@ -43,8 +43,12 @@ const (
 	zoneSeparator       = "__"
 	projectKey          = "project"
 	snapshotLocationKey = "snapshotLocation"
-	pdCSIDriver         = "pd.csi.storage.gke.io"
 )
+
+var pdCSIDriver = map[string]bool{
+	"pd.csi.storage.gke.io":      true,
+	"gcp.csi.confidential.cloud": true,
+}
 
 var pdVolRegexp = regexp.MustCompile(`^projects\/[^\/]+\/(zones|regions)\/[^\/]+\/disks\/[^\/]+$`)
 
@@ -131,15 +135,18 @@ func isMultiZone(volumeAZ string) bool {
 // parseRegion parses a failure-domain tag with multiple zones
 // and returns a single region. Zones are sperated by double underscores (__).
 // For example
-//     input: us-central1-a__us-central1-b
-//     return: us-central1
+//
+//	input: us-central1-a__us-central1-b
+//	return: us-central1
+//
 // When a custom storage class spans multiple geographical zones,
 // such as us-central1 and us-west1 only the zone matching the cluster is used
 // in the failure-domain tag.
 // For example
-//     Cluster nodes in us-central1-c, us-central1-f
-//     Storage class zones us-central1-a, us-central1-f, us-east1-a, us-east1-d
-//     The failure-domain tag would be: us-central1-a__us-central1-f
+//
+//	Cluster nodes in us-central1-c, us-central1-f
+//	Storage class zones us-central1-a, us-central1-f, us-east1-a, us-east1-d
+//	The failure-domain tag would be: us-central1-a__us-central1-f
 func parseRegion(volumeAZ string) (string, error) {
 	zones := strings.Split(volumeAZ, zoneSeparator)
 	zone := zones[0]
@@ -392,11 +399,11 @@ func (b *VolumeSnapshotter) GetVolumeID(unstructuredPV runtime.Unstructured) (st
 
 	if pv.Spec.CSI != nil {
 		driver := pv.Spec.CSI.Driver
-		if driver == pdCSIDriver {
+		if pdCSIDriver[driver] {
 			handle := pv.Spec.CSI.VolumeHandle
 			if !pdVolRegexp.MatchString(handle) {
 				return "", fmt.Errorf("invalid volumeHandle for CSI driver:%s, expected projects/{project}/zones/{zone}/disks/{name}, got %s",
-					pdCSIDriver, handle)
+					driver, handle)
 			}
 			l := strings.Split(handle, "/")
 			return l[len(l)-1], nil
@@ -422,12 +429,12 @@ func (b *VolumeSnapshotter) SetVolumeID(unstructuredPV runtime.Unstructured, vol
 	if pv.Spec.CSI != nil {
 		// PV is provisioned by CSI driver
 		driver := pv.Spec.CSI.Driver
-		if driver == pdCSIDriver {
+		if pdCSIDriver[driver] {
 			handle := pv.Spec.CSI.VolumeHandle
 			// To restore in the same AZ, here we only replace the 'disk' chunk.
 			if !pdVolRegexp.MatchString(handle) {
 				return nil, fmt.Errorf("invalid volumeHandle for restore with CSI driver:%s, expected projects/{project}/zones/{zone}/disks/{name}, got %s",
-					pdCSIDriver, handle)
+					driver, handle)
 			}
 			pv.Spec.CSI.VolumeHandle = handle[:strings.LastIndex(handle, "/")+1] + volumeID
 		} else {

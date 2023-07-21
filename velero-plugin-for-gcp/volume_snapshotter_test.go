@@ -95,6 +95,29 @@ func TestGetVolumeIDForCSI(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Constellation csi driver",
+			csiJSON: `{
+				"driver": "gcp.csi.confidential.cloud",
+				"fsType": "ext4",
+				"volumeAttributes": {
+					"storage.kubernetes.io/csiProvisionerIdentity": "1637243273131-8081-gcp.csi.confidential.cloud"
+				},
+				"volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			want:    "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
+			wantErr: false,
+		},
+		{
+			name: "Constellation csi driver with invalid handle name",
+			csiJSON: `{
+				"driver": "gcp.csi.confidential.cloud",
+				"fsType": "ext4",
+				"volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			want:    "",
+			wantErr: true,
+		},
+		{
 			name: "unknown driver",
 			csiJSON: `{
 				"driver": "xxx.csi.storage.gke.io",
@@ -179,6 +202,26 @@ func TestSetVolumeIDForCSI(t *testing.T) {
 			name: "set ID to CSI with GKE pd CSI driver, but the volumeHandle is invalid",
 			csiJSON: `{
 				 "driver": "pd.csi.storage.gke.io",
+				 "fsType": "ext4",
+				 "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:  true,
+		},
+		{
+			name: "set ID to CSI with Constellation pd CSI driver",
+			csiJSON: `{
+				 "driver": "gcp.csi.confidential.cloud",
+				 "fsType": "ext4",
+				 "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:  false,
+		},
+		{
+			name: "set ID to CSI with Constellation pd CSI driver, but the volumeHandle is invalid",
+			csiJSON: `{
+				 "driver": "gcp.csi.confidential.cloud",
 				 "fsType": "ext4",
 				 "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
