@@ -1,0 +1,5 @@
+Add cross-project backup and restore functionality in the Velero GCP Plugin.
+
+The main changes include:
+Replaced compute.Disks.CreateSnapshot with compute.Snapshots.insert to enable cross-project snapshots.
+Configured the volumeProject to use the project from the provided GCP credentials and snapshotProject to use the project from the plugin configuration.
