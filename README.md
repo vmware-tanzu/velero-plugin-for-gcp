@@ -6,7 +6,7 @@
 
 This repository contains these plugins to support running Velero on GCP:
 
-- An object store plugin for persisting and retrieving backups on Google Cloud Storage. Content of backup is log files, warning/error files, restore logs.
+- An object store plugin for persisting and retrieving backups and restores on Google Cloud Storage. Content of backup includes log files, warning/error files, CSI related resources list, Velero native snapshots list, Velero PodVolumeBackup list, k8s resources list, k8s resources YAMLs and files created by uploader (Restic and Kopia). Content of restore includes restore logs, warning/error files and coming k8s resources list.
 
 - A volume snapshotter plugin for creating snapshots from volumes (during a backup) and volumes from snapshots (during a restore) on Google Compute Engine Disks.
 
@@ -26,14 +26,11 @@ Below is a listing of plugin versions and respective Velero versions that are co
 
 | Plugin Version  | Velero Version |
 |-----------------|----------------|
+| v1.7.x          | v1.11.x        |
+| v1.6.x          | v1.10.x        |
 | v1.5.x          | v1.9.x         |
 | v1.4.x          | v1.8.x         |
 | v1.3.x          | v1.7.x         |
-| v1.2.x          | v1.6.x         |
-| v1.1.x          | v1.5.x         |
-| v1.1.x          | v1.4.x         |
-| v1.0.x          | v1.3.x         |
-| v1.0.x          | v1.2.0         |
 
 ## Filing issues
 
@@ -107,12 +104,13 @@ To integrate Velero with GCP, create a Velero-specific [Service Account][21]:
 
 ### Create Custom Role with Permissions for the Velero GSA:
 These permissions are required by Velero to manage snapshot resources in the GCP Project.
-    
+
 ```bash
 ROLE_PERMISSIONS=(
     compute.disks.get
     compute.disks.create
     compute.disks.createSnapshot
+    compute.projects.get
     compute.snapshots.get
     compute.snapshots.create
     compute.snapshots.useReadOnly
@@ -122,8 +120,9 @@ ROLE_PERMISSIONS=(
     storage.objects.delete
     storage.objects.get
     storage.objects.list
+    iam.serviceAccounts.signBlob
 )
-
+    
 gcloud iam roles create velero.server \
     --project $PROJECT_ID \
     --title "Velero Server" \
@@ -137,8 +136,10 @@ gsutil iam ch serviceAccount:$SERVICE_ACCOUNT_EMAIL:objectAdmin gs://${BUCKET}
 ```
 
 Note: 
-To allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket, 
-add `iam.serviceAccounts.signBlob` permissions above. (optional)
+`iam.serviceAccounts.signBlob` permission is used to allow [Velero's Kubernetes Service Account](#Option-2:-Using-Workload-Identity) to create signed urls for the GCS bucket.
+This is required if you want to run `velero backup logs`, `velero backup download`, `velero backup describe` and `velero restore describe`.
+This is due to those commands need to download some metadata files from S3 bucket to display information needed, and the Velero server has access to GCS but the CLI does not.
+
 ### Grant access to Velero 
 This can be done in 2 different options.
 
@@ -201,7 +202,7 @@ Install Velero, including all prerequisites, into the cluster and start the depl
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.5.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.6.0 \
     --bucket $BUCKET \
     --secret-file ./credentials-velero
 ```
@@ -213,7 +214,7 @@ You must add a service account annotation to the Kubernetes service account so t
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.5.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.6.0 \
     --bucket $BUCKET \
     --no-secret \
     --sa-annotations iam.gke.io/gcp-service-account=[$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com \
