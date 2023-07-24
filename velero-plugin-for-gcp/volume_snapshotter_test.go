@@ -18,6 +18,7 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 	"testing"
 
@@ -396,4 +397,70 @@ func TestRegionHelpers(t *testing.T) {
 			assert.Equal(t, test.expectedRegion, region)
 		})
 	}
+}
+
+func TestInit(t *testing.T) {
+	credential_file_name := "./credential_file"
+	default_credential_file_name := "./default_credential"
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", default_credential_file_name)
+	credential_content := `{"type": "service_account","project_id": "project-a","private_key_id":"id","private_key":"key","client_email":"a@b.com","client_id":"id","auth_uri":"uri","token_uri":"uri","auth_provider_x509_cert_url":"url","client_x509_cert_url":"url"}`
+	f, err := os.Create(credential_file_name)
+	require.NoError(t, err)
+	_, err = f.Write([]byte(credential_content))
+	require.NoError(t, err)
+
+	f, err = os.Create(default_credential_file_name)
+	require.NoError(t, err)
+	_, err = f.Write([]byte(credential_content))
+	require.NoError(t, err)
+
+	tests := []struct {
+		name                      string
+		config                    map[string]string
+		expectedVolumeSnapshotter VolumeSnapshotter
+	}{
+		{
+			name: "Init with Credential files.",
+			config: map[string]string{
+				"project":          "project-a",
+				"credentialsFile":  credential_file_name,
+				"snapshotLocation": "default",
+				"volumeProject":    "project-b",
+			},
+			expectedVolumeSnapshotter: VolumeSnapshotter{
+				snapshotLocation: "default",
+				volumeProject:    "project-b",
+				snapshotProject:  "project-a",
+			},
+		},
+		{
+			name: "Init without Credential files.",
+			config: map[string]string{
+				"project":          "project-a",
+				"snapshotLocation": "default",
+				"volumeProject":    "project-b",
+			},
+			expectedVolumeSnapshotter: VolumeSnapshotter{
+				snapshotLocation: "default",
+				volumeProject:    "project-b",
+				snapshotProject:  "project-a",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			volumeSnapshotter := newVolumeSnapshotter(logrus.StandardLogger())
+			err := volumeSnapshotter.Init(test.config)
+			require.NoError(t, err)
+			require.Equal(t, test.expectedVolumeSnapshotter.snapshotLocation, volumeSnapshotter.snapshotLocation)
+			require.Equal(t, test.expectedVolumeSnapshotter.volumeProject, volumeSnapshotter.volumeProject)
+			require.Equal(t, test.expectedVolumeSnapshotter.snapshotProject, volumeSnapshotter.snapshotProject)
+		})
+	}
+
+	err = os.Remove(credential_file_name)
+	require.NoError(t, err)
+	err = os.Remove(default_credential_file_name)
+	require.NoError(t, err)
 }
