@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,6 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	velerotest "github.com/vmware-tanzu/velero/pkg/test"
 )
 
@@ -149,6 +148,71 @@ func TestObjectExists(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.expectedExists, exists)
+		})
+	}
+}
+
+func Test_getSecretAccountKey(t *testing.T) {
+	type args struct {
+		secretByte []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    credAccountKeys
+		wantErr bool
+	}{
+		{
+			name: "get secret service account account key",
+			args: args{
+				// test data from https://cloud.google.com/iam/docs/keys-create-delete
+				secretByte: []byte(`{
+  "type": "service_account",
+  "project_id": "PROJECT_ID",
+  "private_key_id": "KEY_ID",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nPRIVATE_KEY\n-----END PRIVATE KEY-----\n",
+  "client_email": "SERVICE_ACCOUNT_EMAIL",
+  "client_id": "CLIENT_ID",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/SERVICE_ACCOUNT_EMAIL"
+}
+`),
+			},
+			want:    serviceAccountKey,
+			wantErr: false,
+		},
+		{
+			name: "get secret external account key",
+			args: args{
+				// test data from https://cloud.google.com/iam/docs/workforce-obtaining-short-lived-credentials
+				secretByte: []byte(`{
+  "type": "external_account",
+  "audience": "//iam.googleapis.com/locations/global/workforcePools/WORKFORCE_POOL_ID/providers/PROVIDER_ID",
+  "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+  "token_url": "https://sts.googleapis.com/v1/token",
+  "workforce_pool_user_project": "WORKFORCE_POOL_USER_PROJECT",
+  "credential_source": {
+    "file": "PATH_TO_OIDC_CREDENTIALS_FILE"
+  }
+}
+`),
+			},
+			want:    externalAccountKey,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getSecretAccountTypeKey(tt.args.secretByte)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getSecretAccountKey() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("getSecretAccountKey() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

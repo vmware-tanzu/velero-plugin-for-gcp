@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"time"
@@ -70,10 +71,28 @@ type ObjectStore struct {
 	privateKey     []byte
 	bucketWriter   bucketWriter
 	iamSvc         *iamcredentials.Service
+	fileCredType   credAccountKeys
 }
 
 func newObjectStore(logger logrus.FieldLogger) *ObjectStore {
 	return &ObjectStore{log: logger}
+}
+
+type credAccountKeys string
+
+// From https://github.com/golang/oauth2/blob/d3ed0bb246c8d3c75b63937d9a5eecff9c74d7fe/google/google.go#L95
+const (
+	serviceAccountKey  credAccountKeys = "service_account"
+	externalAccountKey credAccountKeys = "external_account"
+)
+
+func getSecretAccountTypeKey(secretByte []byte) (credAccountKeys, error) {
+	var f map[string]interface{}
+	if err := json.Unmarshal(secretByte, &f); err != nil {
+		return "", err
+	}
+	// following will panic if cannot cast to credAccountKeys
+	return credAccountKeys(f["type"].(string)), nil
 }
 
 func (o *ObjectStore) Init(config map[string]string) error {
@@ -116,8 +135,14 @@ func (o *ObjectStore) Init(config map[string]string) error {
 	}
 
 	if creds.JSON != nil {
-		// Using Credentials File
-		err = o.initFromKeyFile(creds)
+		o.fileCredType, err = getSecretAccountTypeKey(creds.JSON)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if o.fileCredType == serviceAccountKey {
+			// Using Credentials File
+			err = o.initFromKeyFile(creds)
+		}
 	} else {
 		// Using compute engine credentials. Use this if workload identity is enabled.
 		err = o.initFromComputeEngine(config)
@@ -140,6 +165,9 @@ func (o *ObjectStore) Init(config map[string]string) error {
 	return nil
 }
 
+// This function is used to populate the googleAccessID and privateKey fields when using a service account credentials file.
+// it will error if credential file is not for a service account.
+// Do not run this function if using non SA credentials such as external_account.
 func (o *ObjectStore) initFromKeyFile(creds *google.Credentials) error {
 	jwtConfig, err := google.JWTConfigFromJSON(creds.JSON)
 	if err != nil {
@@ -273,6 +301,9 @@ func (o *ObjectStore) SignBytes(bytes []byte) ([]byte, error) {
 }
 
 func (o *ObjectStore) CreateSignedURL(bucket, key string, ttl time.Duration) (string, error) {
+	if o.fileCredType != serviceAccountKey {
+		return "", errors.New("cannot sign blob using non SA file credentials")
+	}
 	options := storage.SignedURLOptions{
 		GoogleAccessID: o.googleAccessID,
 		Method:         "GET",
