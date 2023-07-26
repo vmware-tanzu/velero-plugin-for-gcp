@@ -5,7 +5,7 @@ These steps are heavily inspired by the [gcp documentation](https://cloud.google
 Assume the following...
 
 - Project A [project-a]: GCP project we want to restore TO
-- Project B [project-b]: GCP Project we want to restore FROM
+- Project B [project-b]: GCP Project we want to backup FROM
 
 The steps below assume that you have not setup Velero yet. So make sure to skip any steps you've already completed.
 
