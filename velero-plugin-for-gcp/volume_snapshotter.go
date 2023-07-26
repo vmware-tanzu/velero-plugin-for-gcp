@@ -440,6 +440,10 @@ func (b *VolumeSnapshotter) SetVolumeID(unstructuredPV runtime.Unstructured, vol
 				return nil, fmt.Errorf("invalid volumeHandle for restore with CSI driver:%s, expected projects/{project}/zones/{zone}/disks/{name}, got %s",
 					driver, handle)
 			}
+			if b.IsVolumeCreatedCrossProjects(handle) == true {
+				projectRE := regexp.MustCompile(`projects\/[^\/]+\/`)
+				handle = projectRE.ReplaceAllString(handle, "projects/"+b.volumeProject+"/")
+			}
 			pv.Spec.CSI.VolumeHandle = handle[:strings.LastIndex(handle, "/")+1] + volumeID
 		} else {
 			return nil, fmt.Errorf("unable to handle CSI driver: %s", driver)
@@ -456,4 +460,19 @@ func (b *VolumeSnapshotter) SetVolumeID(unstructuredPV runtime.Unstructured, vol
 	}
 
 	return &unstructured.Unstructured{Object: res}, nil
+}
+
+func (b *VolumeSnapshotter) IsVolumeCreatedCrossProjects(volumeHandle string) bool {
+	// Get project ID from volume handle
+	parsedStr := strings.Split(volumeHandle, "/")
+	if len(parsedStr) < 2 {
+		return false
+	}
+	projectID := parsedStr[1]
+
+	if projectID != b.volumeProject {
+		return true
+	}
+
+	return false
 }

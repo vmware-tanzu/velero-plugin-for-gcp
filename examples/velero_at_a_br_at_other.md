@@ -6,7 +6,7 @@ Assume the following...
 
 - Project A [project-a]: The project where the Velero's service account is located, and the Velero service account is granted to have enough permission to do backup and restore in the other projects.
 - Project B [project-b]: The GCP project we want to restore TO.
-- Project C [project-c]: The GCP project we want to restore FROM.
+- Project C [project-c]: The GCP project we want to backup FROM.
 
 ## Set up Velero with permission in projects
 * In **project-a**
