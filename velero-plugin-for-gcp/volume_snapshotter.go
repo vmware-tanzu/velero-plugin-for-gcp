@@ -43,6 +43,7 @@ const (
 	zoneSeparator       = "__"
 	projectKey          = "project"
 	snapshotLocationKey = "snapshotLocation"
+	volumeProjectKey    = "volumeProject"
 )
 
 var pdCSIDriver = map[string]bool{
@@ -65,7 +66,8 @@ func newVolumeSnapshotter(logger logrus.FieldLogger) *VolumeSnapshotter {
 }
 
 func (b *VolumeSnapshotter) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config, snapshotLocationKey, projectKey, credentialsFileConfigKey); err != nil {
+	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config,
+		snapshotLocationKey, projectKey, credentialsFileConfigKey, volumeProjectKey); err != nil {
 		return err
 	}
 
@@ -102,7 +104,10 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 
 	b.snapshotLocation = config[snapshotLocationKey]
 
-	b.volumeProject = creds.ProjectID
+	b.volumeProject = config[volumeProjectKey]
+	if b.volumeProject == "" {
+		b.volumeProject = creds.ProjectID
+	}
 
 	// get snapshot project from 'project' config key if specified,
 	// otherwise from the credentials file
