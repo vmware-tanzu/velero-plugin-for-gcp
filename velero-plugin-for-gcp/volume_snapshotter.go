@@ -135,7 +135,7 @@ func isMultiZone(volumeAZ string) bool {
 }
 
 // parseRegion parses a failure-domain tag with multiple zones
-// and returns a single region. Zones are sperated by double underscores (__).
+// and returns a single region. Zones are separated by double underscores (__).
 // For example
 //
 //	input: us-central1-a__us-central1-b
