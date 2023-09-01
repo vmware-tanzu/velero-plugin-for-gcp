@@ -180,7 +180,7 @@ Keep in mind that [Workforce Identity Federation Users cannot generate signed UR
 This requires a GKE cluster with workload identity enabled.
 
 1. Create Velero Namespace
-This is required because Kuberenetes Service Account (step 2) resides in a namespace
+This is required because Kubernetes Service Account (step 2) resides in a namespace
 
     ```bash
     NAMESPACE=velero
