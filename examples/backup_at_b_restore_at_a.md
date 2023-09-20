@@ -1,11 +1,11 @@
-# Restore snapshots from GCP across projects
+# Backup at project B, and restore at project A
 
 These steps are heavily inspired by the [gcp documentation](https://cloud.google.com/compute/docs/images/sharing-images-across-projects).
 
 Assume the following...
 
 - Project A [project-a]: GCP project we want to restore TO
-- Project B [project-b]: GCP Project we want to restore FROM
+- Project B [project-b]: GCP Project we want to backup FROM
 
 The steps below assume that you have not setup Velero yet. So make sure to skip any steps you've already completed.
 
@@ -26,7 +26,8 @@ The steps below assume that you have not setup Velero yet. So make sure to skip 
     - Assign [sa-b] "Storage Object Admin" permissions to [bucket-b]
   - Install velero on the k8s cluster in this project with configs
     - credentials: [sa-b]
-    - snapshotlocation: projectid=[project-b] and bucket=[bucket-b]
+    - snapshotlocation: projectid=[project-b]
+    - bucket: [bucket-b]
   - Create velero backup with the pvc snapshots desired [backup-b]
 
 - In [project-a]
@@ -34,7 +35,8 @@ The steps below assume that you have not setup Velero yet. So make sure to skip 
   - NOTE: Make sure to disable any scheduled backups.
   - Install velero on the k8s cluster in this project with configs
     - credentials: [sa-a]
-    - snapshotlocation: projectid=[project-b] and bucket=[bucket-b]
+    - snapshotlocation: projectid=[project-b]
+    - bucket: [bucket-b]
   - Create velero restore [restore-a] from [backup-b]
 
 If all was setup correctly, PVCs should be created from [project-b] snapshots.

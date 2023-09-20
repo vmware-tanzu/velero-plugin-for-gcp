@@ -44,6 +44,7 @@ const (
 	projectKey          = "project"
 	snapshotLocationKey = "snapshotLocation"
 	pdCSIDriver         = "pd.csi.storage.gke.io"
+	volumeProjectKey    = "volumeProject"
 )
 
 var pdVolRegexp = regexp.MustCompile(`^projects\/[^\/]+\/(zones|regions)\/[^\/]+\/disks\/[^\/]+$`)
@@ -61,7 +62,8 @@ func newVolumeSnapshotter(logger logrus.FieldLogger) *VolumeSnapshotter {
 }
 
 func (b *VolumeSnapshotter) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config, snapshotLocationKey, projectKey, credentialsFileConfigKey); err != nil {
+	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config,
+		snapshotLocationKey, projectKey, credentialsFileConfigKey, volumeProjectKey); err != nil {
 		return err
 	}
 
@@ -98,7 +100,7 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 
 	b.snapshotLocation = config[snapshotLocationKey]
 
-	b.volumeProject = config[projectKey]
+	b.volumeProject = config[volumeProjectKey]
 	if b.volumeProject == "" {
 		b.volumeProject = creds.ProjectID
 	}
@@ -131,15 +133,18 @@ func isMultiZone(volumeAZ string) bool {
 // parseRegion parses a failure-domain tag with multiple zones
 // and returns a single region. Zones are sperated by double underscores (__).
 // For example
-//     input: us-central1-a__us-central1-b
-//     return: us-central1
+//
+//	input: us-central1-a__us-central1-b
+//	return: us-central1
+//
 // When a custom storage class spans multiple geographical zones,
 // such as us-central1 and us-west1 only the zone matching the cluster is used
 // in the failure-domain tag.
 // For example
-//     Cluster nodes in us-central1-c, us-central1-f
-//     Storage class zones us-central1-a, us-central1-f, us-east1-a, us-east1-d
-//     The failure-domain tag would be: us-central1-a__us-central1-f
+//
+//	Cluster nodes in us-central1-c, us-central1-f
+//	Storage class zones us-central1-a, us-central1-f, us-east1-a, us-east1-d
+//	The failure-domain tag would be: us-central1-a__us-central1-f
 func parseRegion(volumeAZ string) (string, error) {
 	zones := strings.Split(volumeAZ, zoneSeparator)
 	zone := zones[0]
@@ -411,6 +416,10 @@ func (b *VolumeSnapshotter) SetVolumeID(unstructuredPV runtime.Unstructured, vol
 				return nil, fmt.Errorf("invalid volumeHandle for restore with CSI driver:%s, expected projects/{project}/zones/{zone}/disks/{name}, got %s",
 					pdCSIDriver, handle)
 			}
+			if b.IsVolumeCreatedCrossProjects(handle) == true {
+				projectRE := regexp.MustCompile(`projects\/[^\/]+\/`)
+				handle = projectRE.ReplaceAllString(handle, "projects/"+b.volumeProject+"/")
+			}
 			pv.Spec.CSI.VolumeHandle = handle[:strings.LastIndex(handle, "/")+1] + volumeID
 		} else {
 			return nil, fmt.Errorf("unable to handle CSI driver: %s", driver)
@@ -427,4 +436,19 @@ func (b *VolumeSnapshotter) SetVolumeID(unstructuredPV runtime.Unstructured, vol
 	}
 
 	return &unstructured.Unstructured{Object: res}, nil
+}
+
+func (b *VolumeSnapshotter) IsVolumeCreatedCrossProjects(volumeHandle string) bool {
+	// Get project ID from volume handle
+	parsedStr := strings.Split(volumeHandle, "/")
+	if len(parsedStr) < 2 {
+		return false
+	}
+	projectID := parsedStr[1]
+
+	if projectID != b.volumeProject {
+		return true
+	}
+
+	return false
 }

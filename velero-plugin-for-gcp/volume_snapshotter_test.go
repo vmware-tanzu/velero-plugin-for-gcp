@@ -18,7 +18,7 @@ package main
 
 import (
 	"encoding/json"
-	"strings"
+	"os"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -155,15 +155,13 @@ func TestSetVolumeID(t *testing.T) {
 }
 
 func TestSetVolumeIDForCSI(t *testing.T) {
-	b := &VolumeSnapshotter{
-		log: logrus.New(),
-	}
-
 	cases := []struct {
-		name     string
-		csiJSON  string
-		volumeID string
-		wantErr  bool
+		name           string
+		csiJSON        string
+		volumeID       string
+		wantErr        bool
+		volumeProject  string
+		wantedVolumeID string
 	}{
 		{
 			name: "set ID to CSI with GKE pd CSI driver",
@@ -172,8 +170,10 @@ func TestSetVolumeIDForCSI(t *testing.T) {
 				 "fsType": "ext4",
 				 "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
-			wantErr:  false,
+			volumeID:       "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:        false,
+			volumeProject:  "velero-gcp",
+			wantedVolumeID: "projects/velero-gcp/zones/us-central1-f/disks/restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
 		},
 		{
 			name: "set ID to CSI with GKE pd CSI driver, but the volumeHandle is invalid",
@@ -182,22 +182,41 @@ func TestSetVolumeIDForCSI(t *testing.T) {
 				 "fsType": "ext4",
 				 "volumeHandle": "pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
-			wantErr:  true,
+			volumeID:      "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:       true,
+			volumeProject: "velero-gcp",
 		},
 		{
 			name: "set ID to CSI with unknown driver",
-			csiJSON: `"{
+			csiJSON: `{
 				 "driver": "xxx.csi.storage.gke.io",
 				 "fsType": "ext4",
 				 "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
 			}`,
-			volumeID: "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
-			wantErr:  true,
+			volumeID:      "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:       true,
+			volumeProject: "velero-gcp",
+		},
+		{
+			name: "volume project is different from original handle project",
+			csiJSON: `{
+				 "driver": "pd.csi.storage.gke.io",
+				 "fsType": "ext4",
+				 "volumeHandle": "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d"
+			}`,
+			volumeID:       "restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
+			wantErr:        false,
+			volumeProject:  "velero-gcp-2",
+			wantedVolumeID: "projects/velero-gcp-2/zones/us-central1-f/disks/restore-fd9729b5-868b-4544-9568-1c5d9121dabc",
 		},
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
+			b := &VolumeSnapshotter{
+				log:           logrus.New(),
+				volumeProject: tt.volumeProject,
+			}
+
 			res := &unstructured.Unstructured{
 				Object: map[string]interface{}{},
 			}
@@ -206,17 +225,16 @@ func TestSetVolumeIDForCSI(t *testing.T) {
 			res.Object["spec"] = map[string]interface{}{
 				"csi": csi,
 			}
-			originalVolHanle, _ := csi["volumeHandle"].(string)
 			newRes, err := b.SetVolumeID(res, tt.volumeID)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				newPV := new(v1.PersistentVolume)
 				require.NoError(t, runtime.DefaultUnstructuredConverter.FromUnstructured(newRes.UnstructuredContent(), newPV))
-				ind := strings.LastIndex(newPV.Spec.CSI.VolumeHandle, "/")
-				assert.Equal(t, tt.volumeID, newPV.Spec.CSI.VolumeHandle[ind+1:])
-				assert.Equal(t, originalVolHanle[:ind], newPV.Spec.CSI.VolumeHandle[:ind])
+				if tt.wantedVolumeID != "" {
+					require.Equal(t, tt.wantedVolumeID, newPV.Spec.CSI.VolumeHandle)
+				}
 			}
 		})
 	}
@@ -351,6 +369,114 @@ func TestRegionHelpers(t *testing.T) {
 				assert.Equal(t, test.expectedError.Error(), err.Error())
 			}
 			assert.Equal(t, test.expectedRegion, region)
+		})
+	}
+}
+
+func TestInit(t *testing.T) {
+	credential_file_name := "./credential_file"
+	default_credential_file_name := "./default_credential"
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", default_credential_file_name)
+	credential_content := `{"type": "service_account","project_id": "project-a","private_key_id":"id","private_key":"key","client_email":"a@b.com","client_id":"id","auth_uri":"uri","token_uri":"uri","auth_provider_x509_cert_url":"url","client_x509_cert_url":"url"}`
+	f, err := os.Create(credential_file_name)
+	require.NoError(t, err)
+	_, err = f.Write([]byte(credential_content))
+	require.NoError(t, err)
+
+	f, err = os.Create(default_credential_file_name)
+	require.NoError(t, err)
+	_, err = f.Write([]byte(credential_content))
+	require.NoError(t, err)
+
+	tests := []struct {
+		name                      string
+		config                    map[string]string
+		expectedVolumeSnapshotter VolumeSnapshotter
+	}{
+		{
+			name: "Init with Credential files.",
+			config: map[string]string{
+				"project":          "project-a",
+				"credentialsFile":  credential_file_name,
+				"snapshotLocation": "default",
+				"volumeProject":    "project-b",
+			},
+			expectedVolumeSnapshotter: VolumeSnapshotter{
+				snapshotLocation: "default",
+				volumeProject:    "project-b",
+				snapshotProject:  "project-a",
+			},
+		},
+		{
+			name: "Init without Credential files.",
+			config: map[string]string{
+				"project":          "project-a",
+				"snapshotLocation": "default",
+				"volumeProject":    "project-b",
+			},
+			expectedVolumeSnapshotter: VolumeSnapshotter{
+				snapshotLocation: "default",
+				volumeProject:    "project-b",
+				snapshotProject:  "project-a",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			volumeSnapshotter := newVolumeSnapshotter(logrus.StandardLogger())
+			err := volumeSnapshotter.Init(test.config)
+			require.NoError(t, err)
+			require.Equal(t, test.expectedVolumeSnapshotter.snapshotLocation, volumeSnapshotter.snapshotLocation)
+			require.Equal(t, test.expectedVolumeSnapshotter.volumeProject, volumeSnapshotter.volumeProject)
+			require.Equal(t, test.expectedVolumeSnapshotter.snapshotProject, volumeSnapshotter.snapshotProject)
+		})
+	}
+
+	err = os.Remove(credential_file_name)
+	require.NoError(t, err)
+	err = os.Remove(default_credential_file_name)
+	require.NoError(t, err)
+}
+
+func TestIsVolumeCreatedCrossProjects(t *testing.T) {
+	tests := []struct {
+		name              string
+		volumeSnapshotter VolumeSnapshotter
+		volumeHandle      string
+		expectedResult    bool
+	}{
+		{
+			name: "Invalid Volume handle",
+			volumeSnapshotter: VolumeSnapshotter{
+				log: logrus.New(),
+			},
+			volumeHandle:   "InvalidHandle",
+			expectedResult: false,
+		},
+		{
+			name: "Volume is created cross-project",
+			volumeSnapshotter: VolumeSnapshotter{
+				log:           logrus.New(),
+				volumeProject: "velero-gcp-2",
+			},
+			volumeHandle:   "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
+			expectedResult: true,
+		},
+		{
+			name: "Volume is not created cross-project",
+			volumeSnapshotter: VolumeSnapshotter{
+				log:           logrus.New(),
+				volumeProject: "velero-gcp",
+			},
+			volumeHandle:   "projects/velero-gcp/zones/us-central1-f/disks/pvc-a970184f-6cc1-4769-85ad-61dcaf8bf51d",
+			expectedResult: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			require.Equal(t, test.expectedResult, test.volumeSnapshotter.IsVolumeCreatedCrossProjects(test.volumeHandle))
 		})
 	}
 }
