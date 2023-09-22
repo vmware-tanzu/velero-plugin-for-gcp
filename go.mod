@@ -9,7 +9,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.2
-	github.com/vmware-tanzu/velero v1.12.0-rc.2
+	github.com/vmware-tanzu/velero v1.12.0
 	golang.org/x/oauth2 v0.7.0
 	google.golang.org/api v0.120.0
 	k8s.io/api v0.25.6
