@@ -301,8 +301,10 @@ func (o *ObjectStore) SignBytes(bytes []byte) ([]byte, error) {
 }
 
 func (o *ObjectStore) CreateSignedURL(bucket, key string, ttl time.Duration) (string, error) {
-	if o.fileCredType != serviceAccountKey {
-		return "", errors.New("cannot sign blob using non SA file credentials")
+	// googleAccessID is initialized from ServiceAccount key file and compute engine credentials.
+	// If using external_account credentials, googleAccessID will be empty and we cannot create signed URL.
+	if o.googleAccessID == "" {
+		return "", errors.New("GoogleAccessID is empty, perhaps using external_account credentials, cannot create signed URL")
 	}
 	options := storage.SignedURLOptions{
 		GoogleAccessID: o.googleAccessID,
