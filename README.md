@@ -175,8 +175,6 @@ This involves creating an external credential file and using it as `--secret-fil
 
 #### Option 3: Using GKE Workload Identity
 
-Keep in mind that [Workforce Identity Federation Users cannot generate signed URLs](https://cloud.google.com/iam/docs/federated-identity-supported-services#:~:text=workforce%20identity%20federation%20users%20cannot%20generate%20signed%20URLs.). This means, if you are using Workforce Identity Federation, you will not be able to run `velero backup logs`, `velero backup download`, `velero backup describe` and `velero restore describe`.
-
 This requires a GKE cluster with workload identity enabled.
 
 1. Create Velero Namespace
