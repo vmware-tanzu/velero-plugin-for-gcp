@@ -195,7 +195,7 @@ Namespace is already created in step 1 above.
     kubectl create serviceaccount $KSA_NAME --namespace $NAMESPACE
     ```
 
-3. Add IAM Policy Binding for Velero's Kubernetes service account to a GCP service account
+1. Add IAM Policy Binding for Velero's Kubernetes service account to a GCP service account
 
     ```bash
     gcloud iam service-accounts add-iam-policy-binding \
