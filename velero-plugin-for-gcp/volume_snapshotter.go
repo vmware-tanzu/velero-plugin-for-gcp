@@ -43,6 +43,7 @@ const (
 	zoneSeparator       = "__"
 	projectKey          = "project"
 	snapshotLocationKey = "snapshotLocation"
+	snapshotTypeKey     = "snapshotType"
 	volumeProjectKey    = "volumeProject"
 )
 
@@ -59,6 +60,7 @@ type VolumeSnapshotter struct {
 	snapshotLocation string
 	volumeProject    string
 	snapshotProject  string
+	snapshotType     string
 }
 
 func newVolumeSnapshotter(logger logrus.FieldLogger) *VolumeSnapshotter {
@@ -67,7 +69,7 @@ func newVolumeSnapshotter(logger logrus.FieldLogger) *VolumeSnapshotter {
 
 func (b *VolumeSnapshotter) Init(config map[string]string) error {
 	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config,
-		snapshotLocationKey, projectKey, credentialsFileConfigKey, volumeProjectKey); err != nil {
+		snapshotLocationKey, snapshotTypeKey, projectKey, credentialsFileConfigKey, volumeProjectKey); err != nil {
 		return err
 	}
 
@@ -114,6 +116,18 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 	b.snapshotProject = config[projectKey]
 	if b.snapshotProject == "" {
 		b.snapshotProject = b.volumeProject
+	}
+
+    // get snapshot type from 'snapshotType' config key if specified,
+    // otherwise default to "STANDARD"
+	snapshotType := strings.ToUpper(config[snapshotTypeKey])
+	switch snapshotType {
+	case "":
+		b.snapshotType = "STANDARD"
+	case "STANDARD", "ARCHIVE":
+		b.snapshotType = snapshotType
+	default:
+        return errors.Errorf("unsupported snapshot type: %q", snapshotType)
 	}
 
 	gce, err := compute.NewService(context.TODO(), clientOptions...)
