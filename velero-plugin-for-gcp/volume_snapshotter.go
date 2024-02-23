@@ -118,8 +118,8 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 		b.snapshotProject = b.volumeProject
 	}
 
-    // get snapshot type from 'snapshotType' config key if specified,
-    // otherwise default to "STANDARD"
+	// get snapshot type from 'snapshotType' config key if specified,
+	// otherwise default to "STANDARD"
 	snapshotType := strings.ToUpper(config[snapshotTypeKey])
 	switch snapshotType {
 	case "":
@@ -127,7 +127,7 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 	case "STANDARD", "ARCHIVE":
 		b.snapshotType = snapshotType
 	default:
-        return errors.Errorf("unsupported snapshot type: %q", snapshotType)
+		return errors.Errorf("unsupported snapshot type: %q", snapshotType)
 	}
 
 	gce, err := compute.NewService(context.TODO(), clientOptions...)
