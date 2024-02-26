@@ -314,9 +314,10 @@ func (b *VolumeSnapshotter) createSnapshot(snapshotName, volumeID, volumeAZ stri
 	}
 
 	gceSnap := compute.Snapshot{
-		Name:        snapshotName,
-		Description: getSnapshotTags(tags, disk.Description, b.log),
-		SourceDisk:  disk.SelfLink,
+		Name:         snapshotName,
+		Description:  getSnapshotTags(tags, disk.Description, b.log),
+		SourceDisk:   disk.SelfLink,
+		SnapshotType: b.snapshotType,
 	}
 
 	if b.snapshotLocation != "" {
@@ -338,9 +339,10 @@ func (b *VolumeSnapshotter) createRegionSnapshot(snapshotName, volumeID, volumeR
 	}
 
 	gceSnap := compute.Snapshot{
-		Name:        snapshotName,
-		Description: getSnapshotTags(tags, disk.Description, b.log),
-		SourceDisk:  disk.SelfLink,
+		Name:         snapshotName,
+		Description:  getSnapshotTags(tags, disk.Description, b.log),
+		SourceDisk:   disk.SelfLink,
+		SnapshotType: b.snapshotType,
 	}
 
 	if b.snapshotLocation != "" {
