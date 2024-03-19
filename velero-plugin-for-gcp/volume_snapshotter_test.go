@@ -451,6 +451,7 @@ func TestInit(t *testing.T) {
 				snapshotLocation: "default",
 				volumeProject:    "project-b",
 				snapshotProject:  "project-a",
+				snapshotType:     "STANDARD",
 			},
 		},
 		{
@@ -458,12 +459,29 @@ func TestInit(t *testing.T) {
 			config: map[string]string{
 				"project":          "project-a",
 				"snapshotLocation": "default",
+				"snapshotType":     "standard",
 				"volumeProject":    "project-b",
 			},
 			expectedVolumeSnapshotter: VolumeSnapshotter{
 				snapshotLocation: "default",
 				volumeProject:    "project-b",
 				snapshotProject:  "project-a",
+				snapshotType:     "STANDARD",
+			},
+		},
+		{
+			name: "Init with archive snapshot type.",
+			config: map[string]string{
+				"project":          "project-a",
+				"snapshotLocation": "default",
+				"snapshotType":     "archive",
+				"volumeProject":    "project-b",
+			},
+			expectedVolumeSnapshotter: VolumeSnapshotter{
+				snapshotLocation: "default",
+				volumeProject:    "project-b",
+				snapshotProject:  "project-a",
+				snapshotType:     "ARCHIVE",
 			},
 		},
 	}
@@ -476,6 +494,7 @@ func TestInit(t *testing.T) {
 			require.Equal(t, test.expectedVolumeSnapshotter.snapshotLocation, volumeSnapshotter.snapshotLocation)
 			require.Equal(t, test.expectedVolumeSnapshotter.volumeProject, volumeSnapshotter.volumeProject)
 			require.Equal(t, test.expectedVolumeSnapshotter.snapshotProject, volumeSnapshotter.snapshotProject)
+			require.Equal(t, test.expectedVolumeSnapshotter.snapshotType, volumeSnapshotter.snapshotType)
 		})
 	}
 
