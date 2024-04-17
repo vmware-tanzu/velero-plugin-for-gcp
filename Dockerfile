@@ -35,3 +35,5 @@ COPY --from=build /go/bin/velero-plugin-for-gcp /plugins/
 COPY --from=build /go/bin/cp-plugin /bin/cp-plugin
 USER 65532:65532
 ENTRYPOINT ["cp-plugin", "/plugins/velero-plugin-for-gcp", "/target/velero-plugin-for-gcp"]
+
+LABEL org.opencontainers.image.source="https://github.com/vmware-tanzu/velero-plugin-for-gcp"
