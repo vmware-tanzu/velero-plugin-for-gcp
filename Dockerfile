@@ -43,7 +43,7 @@ ARG GIT_SHA
 LABEL \
 	org.opencontainers.image.created=${CREATED} \
 	org.opencontainers.image.url="https://hub.docker.com/r/velero/velero-plugin-for-gcp" \
-	org.opencontainers.image.documentation="https://velero.io" \
+	org.opencontainers.image.documentation="https://github.com/vmware-tanzu/velero-plugin-for-gcp" \
 	org.opencontainers.image.source="https://github.com/vmware-tanzu/velero-plugin-for-gcp" \
 	org.opencontainers.image.version=${VERSION} \
 	org.opencontainers.image.revision=${GIT_SHA} \
