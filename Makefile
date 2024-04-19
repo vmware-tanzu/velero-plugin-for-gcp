@@ -103,7 +103,7 @@ container:
 ifneq ($(BUILDX_ENABLED), true)
 	$(error $(BUILDX_ERROR))
 endif
-	@docker buildx build --pull \
+	docker buildx build --pull \
 	--output=type=$(BUILDX_OUTPUT_TYPE) \
 	--platform $(BUILDX_PLATFORMS) \
 	$(addprefix -t , $(IMAGE_TAGS)) \
@@ -111,6 +111,7 @@ endif
 	--build-arg=GOPROXY=$(GOPROXY) \
 	--build-arg=PKG=$(PKG) \
 	--build-arg=BIN=$(BIN) \
+	--build-arg=CREATED="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')" \
 	--build-arg=VERSION=$(VERSION) \
 	--build-arg=GIT_SHA=$(GIT_SHA) \
 	--build-arg=GIT_TREE_STATE=$(GIT_TREE_STATE) \

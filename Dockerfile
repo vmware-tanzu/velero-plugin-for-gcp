@@ -36,4 +36,19 @@ COPY --from=build /go/bin/cp-plugin /bin/cp-plugin
 USER 65532:65532
 ENTRYPOINT ["cp-plugin", "/plugins/velero-plugin-for-gcp", "/target/velero-plugin-for-gcp"]
 
-LABEL org.opencontainers.image.source="https://github.com/vmware-tanzu/velero-plugin-for-gcp"
+ARG CREATED
+ARG VERSION
+ARG GIT_SHA
+
+LABEL \
+	org.opencontainers.image.created=${CREATED} \
+	org.opencontainers.image.url="https://hub.docker.com/r/velero/velero-plugin-for-gcp" \
+	org.opencontainers.image.documentation="https://velero.io" \
+	org.opencontainers.image.source="https://github.com/vmware-tanzu/velero-plugin-for-gcp" \
+	org.opencontainers.image.version=${VERSION} \
+	org.opencontainers.image.revision=${GIT_SHA} \
+	org.opencontainers.image.vendor="vmware-tanzu" \
+	org.opencontainers.image.licenses="Apache-2.0" \
+	org.opencontainers.image.title="velero-plugin-for-gcp" \
+	org.opencontainers.image.description="Plugins to support Velero on Google Cloud Platform (GCP)" \
+	org.opencontainers.image.base.name="scratch"
