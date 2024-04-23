@@ -20,8 +20,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -68,8 +68,14 @@ func newVolumeSnapshotter(logger logrus.FieldLogger) *VolumeSnapshotter {
 }
 
 func (b *VolumeSnapshotter) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(config,
-		snapshotLocationKey, snapshotTypeKey, projectKey, credentialsFileConfigKey, volumeProjectKey); err != nil {
+	if err := veleroplugin.ValidateVolumeSnapshotterConfigKeys(
+		config,
+		snapshotLocationKey,
+		snapshotTypeKey,
+		projectKey,
+		credentialsFileConfigKey,
+		volumeProjectKey,
+	); err != nil {
 		return err
 	}
 
@@ -83,7 +89,7 @@ func (b *VolumeSnapshotter) Init(config map[string]string) error {
 
 	// If credential is provided for the VSL, use it instead of default credential.
 	if credentialsFile, ok := config[credentialsFileConfigKey]; ok {
-		b, err := ioutil.ReadFile(credentialsFile)
+		b, err := os.ReadFile(credentialsFile)
 		if err != nil {
 			return errors.Wrapf(err, "error reading provided credentials file %v", credentialsFile)
 		}

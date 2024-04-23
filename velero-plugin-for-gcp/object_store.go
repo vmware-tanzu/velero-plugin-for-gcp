@@ -21,7 +21,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -96,7 +96,12 @@ func getSecretAccountTypeKey(secretByte []byte) (credAccountKeys, error) {
 }
 
 func (o *ObjectStore) Init(config map[string]string) error {
-	if err := veleroplugin.ValidateObjectStoreConfigKeys(config, kmsKeyNameConfigKey, serviceAccountConfig, credentialsFileConfigKey); err != nil {
+	if err := veleroplugin.ValidateObjectStoreConfigKeys(
+		config,
+		kmsKeyNameConfigKey,
+		serviceAccountConfig,
+		credentialsFileConfigKey,
+	); err != nil {
 		return err
 	}
 	// Find default token source to extract the GoogleAccessID
@@ -112,7 +117,7 @@ func (o *ObjectStore) Init(config map[string]string) error {
 
 	// Prioritize the credentials file path in config, if it exists
 	if credentialsFile, ok := config[credentialsFileConfigKey]; ok {
-		b, err := ioutil.ReadFile(credentialsFile)
+		b, err := os.ReadFile(credentialsFile)
 		if err != nil {
 			return errors.Wrapf(err, "error reading provided credentials file %v", credentialsFile)
 		}
