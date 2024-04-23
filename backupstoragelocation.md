@@ -38,4 +38,9 @@ spec:
     #
     # Optional (defaults to "false").
     serviceAccount: my-service-account
+
+    # The preferred credentials to talk to the GCP cloud storage service.
+    #
+    # Optional.
+    credentialsFile: path/to/my/credential
 ```

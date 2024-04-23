@@ -26,13 +26,12 @@ Below is a listing of plugin versions and respective Velero versions that are co
 
 | Plugin Version  | Velero Version |
 |-----------------|----------------|
+| v1.10.x         | v1.14.x        |
 | v1.9.x          | v1.13.x        |
 | v1.8.x          | v1.12.x        |
 | v1.7.x          | v1.11.x        |
 | v1.6.x          | v1.10.x        |
 | v1.5.x          | v1.9.x         |
-| v1.4.x          | v1.8.x         |
-| v1.3.x          | v1.7.x         |
 
 ## Filing issues
 
@@ -222,7 +221,7 @@ Install Velero, including all prerequisites, into the cluster and start the depl
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.6.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.10.0 \
     --bucket $BUCKET \
     --secret-file ./credentials-velero
 ```
@@ -234,7 +233,7 @@ You must add a service account annotation to the Kubernetes service account so t
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.6.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.10.0 \
     --bucket $BUCKET \
     --no-secret \
     --sa-annotations iam.gke.io/gcp-service-account=[$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com \
@@ -243,9 +242,9 @@ velero install \
 
 Additionally, you can specify `--use-node-agent` to enable node agent support, and `--wait` to wait for the deployment to be ready.
 
-(Optional) Specify [additional configurable parameters][7] for the `--backup-location-config` flag.
+(Optional) Specify [additional configurable parameters](backupstoragelocation.md) for the `--backup-location-config` flag.
 
-(Optional) Specify [additional configurable parameters][8] for the `--snapshot-location-config` flag.
+(Optional) Specify [additional configurable parameters](volumesnapshotlocation.md) for the `--snapshot-location-config` flag.
 
 (Optional) [Customize the Velero installation][9] further to meet your needs.
 
@@ -296,14 +295,21 @@ velero backup-location get
 
 To use this new Backup Storage Location when performing a backup, use the flag `--storage-location <bsl-name>` when running `velero backup create`.
 
+## Configure the GCP plugin
+The Velero GCP plugin contains two plugins: 
+ObjectStore plugin: it's used to connect to the GCP Cloud Storage to manipulate the object files.
+Please check the possible configuration options in the [BSL configuration document](backupstoragelocation.md).
+
+VolumeSnapshotter plugin: it's used to manipulate the snapshots in GCP.
+Please check the possible configuration options in the [VSL configuration document](volumesnapshotlocation.md).
+
+
 
 [1]: #Create-an-GCS-bucket
 [2]: #Set-permissions-for-Velero
 [3]: #Install-and-start-Velero
 [4]: https://velero.io/docs/install-overview/
 [5]: https://cloud.google.com/sdk/docs/
-[7]: backupstoragelocation.md
-[8]: volumesnapshotlocation.md
 [9]: https://velero.io/docs/customize-installation/
 [10]: ./examples
 [11]: https://velero.io/docs/faq/

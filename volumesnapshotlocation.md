@@ -30,4 +30,20 @@ spec:
     # 
     # Optional (defaults to the project that the GCP IAM account is in).
     project: my-alternate-project
+
+    # The preferred credentials to talk to the GCP snapshot service.
+    #
+    # Optional.
+    credentialsFile: path/to/my/credential
+
+    # The project to manipulate volumes. 
+    # This is useful the backup and restore happens in different projects.
+    #
+    # Optional (default to be same the credential's project).
+    volumeProject: project-id
+
+    # The type of the created snapshot. Two types are supported: STANDARD and ARCHIVE.
+    #
+    # Optional (default to STANDARD).
+    snapshotType: snapshot-type
 ```
