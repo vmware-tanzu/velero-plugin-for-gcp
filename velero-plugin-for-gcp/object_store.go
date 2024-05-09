@@ -39,6 +39,7 @@ const (
 	kmsKeyNameConfigKey      = "kmsKeyName"
 	serviceAccountConfig     = "serviceAccount"
 	credentialsFileConfigKey = "credentialsFile"
+	storeEndpointConfigKey   = "storeEndpoint"
 )
 
 // bucketWriter wraps the GCP SDK functions for accessing object store so they can be faked for testing.
@@ -101,6 +102,7 @@ func (o *ObjectStore) Init(config map[string]string) error {
 		kmsKeyNameConfigKey,
 		serviceAccountConfig,
 		credentialsFileConfigKey,
+		storeEndpointConfigKey,
 	); err != nil {
 		return err
 	}
@@ -137,6 +139,11 @@ func (o *ObjectStore) Init(config map[string]string) error {
 
 	if err != nil {
 		return errors.WithStack(err)
+	}
+
+	// if using a endpoint, we need to pass it when creating the object store client
+	if endpoint, ok := config[storeEndpointConfigKey]; ok {
+		clientOptions = append(clientOptions, option.WithEndpoint(endpoint))
 	}
 
 	if creds.JSON != nil {
