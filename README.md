@@ -200,8 +200,16 @@ Namespace is already created in step 1 above.
     ```bash
     gcloud iam service-accounts add-iam-policy-binding \
         --role roles/iam.workloadIdentityUser \
-        --member "serviceAccount:[$PROJECT_ID].svc.id.goog[$NAMESPACE/$KSA_NAME]" \
-        [$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com
+        --member "serviceAccount:$PROJECT_ID.svc.id.goog[$NAMESPACE/$KSA_NAME]" \
+        $GSA_NAME@$PROJECT_ID.iam.gserviceaccount.com
+    ```
+
+4. Add annotation to Kubernetes Service Account
+
+    ```bash
+    kubectl annotate serviceaccount $KSA_NAME \
+        --namespace $NAMESPACE \
+        iam.gke.io/gcp-service-account=$GSA_NAME@$PROJECT_ID.iam.gserviceaccount.com
     ```
 
 In this case:
