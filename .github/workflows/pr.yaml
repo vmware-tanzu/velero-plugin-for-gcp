@@ -8,21 +8,20 @@ jobs:
     steps:
 
     - name: Check out the code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version-file: go.mod
+        go-version-file: 'go.mod'
       id: go
 
     - name: Make CI
       run: make ci
 
     - name: Upload test coverage
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage.out
         verbose: true
-
