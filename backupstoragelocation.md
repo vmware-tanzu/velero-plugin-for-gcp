@@ -48,4 +48,9 @@ spec:
     #
     # Optional.
     storeEndpoint: storage-example.p.googleapis.com
+
+    # Configuration of the universe domain
+    #
+    # Optional.
+    universeDomain: googleapis.com
 ```
