@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/storage"
+	pkgerrors "github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	velerotest "github.com/vmware-tanzu/velero/pkg/test"
@@ -120,6 +121,11 @@ func TestObjectExists(t *testing.T) {
 		{
 			name:           "doesn't exist",
 			errorResponse:  storage.ErrObjectNotExist,
+			expectedExists: false,
+		},
+		{
+			name:           "doesn't exist - wrapped error",
+			errorResponse:  pkgerrors.Wrap(storage.ErrObjectNotExist, "googleapi: Error 404: No such object"),
 			expectedExists: false,
 		},
 		{
