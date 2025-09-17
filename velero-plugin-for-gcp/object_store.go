@@ -37,10 +37,10 @@ import (
 
 const (
 	kmsKeyNameConfigKey      = "kmsKeyName"
-	serviceAccountConfigKey     = "serviceAccount"
+	serviceAccountConfigKey  = "serviceAccount"
 	credentialsFileConfigKey = "credentialsFile"
 	storeEndpointConfigKey   = "storeEndpoint"
-	universeDomainKey   = "universeDomain"
+	universeDomainKey        = "universeDomain"
 )
 
 // bucketWriter wraps the GCP SDK functions for accessing object store so they can be faked for testing.
@@ -233,7 +233,7 @@ func (o *ObjectStore) PutObject(bucket, key string, body io.Reader) error {
 
 func (o *ObjectStore) ObjectExists(bucket, key string) (bool, error) {
 	if _, err := o.bucketWriter.getAttrs(bucket, key); err != nil {
-		if err == storage.ErrObjectNotExist {
+		if errors.Is(err, storage.ErrObjectNotExist) {
 			return false, nil
 		}
 		return false, errors.WithStack(err)
