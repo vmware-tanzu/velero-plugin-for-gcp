@@ -115,6 +115,7 @@ These permissions are required by Velero to manage snapshot resources in the GCP
         compute.snapshots.create
         compute.snapshots.useReadOnly
         compute.snapshots.delete
+        compute.snapshots.setLabels
         compute.zones.get
         storage.objects.create
         storage.objects.delete
