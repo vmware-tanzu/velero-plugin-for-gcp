@@ -2,6 +2,8 @@ module github.com/vmware-tanzu/velero-plugin-for-gcp
 
 go 1.24.0
 
+toolchain go1.24.9
+
 require (
 	cloud.google.com/go/storage v1.55.0
 	github.com/gofrs/uuid v4.2.0+incompatible
