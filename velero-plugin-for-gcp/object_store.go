@@ -342,5 +342,5 @@ func (o *ObjectStore) CreateSignedURL(bucket, key string, ttl time.Duration) (st
 		options.PrivateKey = o.privateKey
 	}
 
-	return storage.SignedURL(bucket, key, &options)
+	return o.client.Bucket(bucket).SignedURL(key, &options)
 }
