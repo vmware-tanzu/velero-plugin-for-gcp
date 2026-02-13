@@ -26,11 +26,11 @@ Below is a listing of plugin versions and respective Velero versions that are co
 
 | Plugin Version  | Velero Version |
 |-----------------|----------------|
+| v1.14.x         | v1.18.x        |
 | v1.13.x         | v1.17.x        |
 | v1.12.x         | v1.16.x        |
 | v1.11.x         | v1.15.x        |
 | v1.10.x         | v1.14.x        |
-| v1.9.x          | v1.13.x        |
 
 ## Filing issues
 
@@ -229,7 +229,7 @@ Install Velero, including all prerequisites, into the cluster and start the depl
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.13.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.14.0 \
     --bucket $BUCKET \
     --secret-file ./credentials-velero
 ```
@@ -241,7 +241,7 @@ You must add a service account annotation to the Kubernetes service account so t
 ```bash
 velero install \
     --provider gcp \
-    --plugins velero/velero-plugin-for-gcp:v1.13.0 \
+    --plugins velero/velero-plugin-for-gcp:v1.14.0 \
     --bucket $BUCKET \
     --no-secret \
     --sa-annotations iam.gke.io/gcp-service-account=[$GSA_NAME]@[$PROJECT_ID].iam.gserviceaccount.com \
