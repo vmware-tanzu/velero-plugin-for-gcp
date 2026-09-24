@@ -16,7 +16,7 @@
 BIN ?= velero-plugin-for-gcp
 
 # This repo's root import path (under GOPATH).
-PKG := github.com/vmware-tanzu/velero-plugin-for-gcp
+PKG := github.com/velero-io/velero-plugin-for-gcp
 
 # Where to push the docker image.
 REGISTRY ?= velero
