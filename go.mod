@@ -1,4 +1,4 @@
-module github.com/vmware-tanzu/velero-plugin-for-gcp
+module github.com/velero-io/velero-plugin-for-gcp
 
 go 1.25.0
 

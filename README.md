@@ -330,6 +330,6 @@ Please check the possible configuration options in the [VSL configuration docume
 [22]: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#iam-rolebinding-bootstrap
 [24]: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
 
-[101]: https://github.com/vmware-tanzu/velero-plugin-for-gcp/workflows/Main%20CI/badge.svg
-[102]: https://github.com/vmware-tanzu/velero-plugin-for-gcp/actions?query=workflow%3A"Main+CI"
+[101]: https://github.com/velero-io/velero-plugin-for-gcp/workflows/Main%20CI/badge.svg
+[102]: https://github.com/velero-io/velero-plugin-for-gcp/actions?query=workflow%3A"Main+CI"
 [103]: https://github.com/vmware-tanzu/velero/issues/new/choose
